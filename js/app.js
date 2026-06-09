@@ -25,6 +25,10 @@ function startQuiz() {
   currentQ = 0;
   showScreen('screen-quiz');
   renderQuestion(0, 'none');
+  // 시작 시 앞 3개 이미지 즉시 프리로드
+  [0, 1, 2].forEach(i => {
+    if (questions[i]) preloadImage(questions[i].illust);
+  });
 }
 function retryQuiz() { startQuiz(); }
 
@@ -112,26 +116,60 @@ function renderQuestion(idx, direction) {
   renderOptions(idx, q);
 }
 
+// ─── 이미지 프리로드 캐시 ────────────────────
+const _preloaded = new Set();
+function preloadImage(src) {
+  if (!src || _preloaded.has(src)) return;
+  _preloaded.add(src);
+  const img = new Image();
+  img.src = src;
+}
+
 // ─── 카드 콘텐츠 갱신 ─────────────────────────
 function updateCardContent(q, idx) {
   const sitEl = document.getElementById('q-situation');
   const txtEl = document.getElementById('q-text');
 
+  // 텍스트 교체
   if (sitEl) sitEl.textContent = q.situation;
   if (txtEl) {
-    // Q1, Q2 … 번호를 span 으로 앞에 삽입
-    txtEl.innerHTML =
-      `<span class="q-number">Q${idx + 1}.</span> ${q.text}`;
+    txtEl.innerHTML = `<span class="q-number">Q${idx + 1}.</span> ${q.text}`;
   }
 
-  const img = document.getElementById('q-illust');
-  if (img) {
-    img.style.opacity = '0';
-    img.src = q.illust;
-    img.alt = `Q${idx + 1} 일러스트`;
-    img.onerror = () => { img.style.display = 'none'; };
-    img.onload  = () => { img.style.display = 'block'; img.style.opacity = '1'; };
+  // 이미지 교체 — flash 방지:
+  //   1. 새 이미지를 미리 메모리에 로드
+  //   2. 로드 완료 후에만 img.src 교체 (빈 화면 없음)
+  //   3. 이미 캐시된 경우 즉시 교체
+  const imgEl = document.getElementById('q-illust');
+  if (imgEl) {
+    const newSrc = q.illust;
+
+    if (_preloaded.has(newSrc)) {
+      // 이미 프리로드됨 → 즉시 교체 (flash 없음)
+      imgEl.style.display = 'block';
+      imgEl.style.opacity = '1';
+      imgEl.src = newSrc;
+      imgEl.alt = `Q${idx + 1} 일러스트`;
+    } else {
+      // 미캐시 → 로드 완료 후 교체
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        imgEl.src = newSrc;
+        imgEl.alt = `Q${idx + 1} 일러스트`;
+        imgEl.style.display = 'block';
+        imgEl.style.opacity = '1';
+        _preloaded.add(newSrc);
+      };
+      tempImg.onerror = () => {
+        imgEl.style.display = 'none';
+      };
+      tempImg.src = newSrc;
+    }
   }
+
+  // 다음 + 다다음 질문 이미지 프리로드
+  if (idx + 1 < questions.length) preloadImage(questions[idx + 1].illust);
+  if (idx + 2 < questions.length) preloadImage(questions[idx + 2].illust);
 }
 
 // ─── 선택지 버튼 ──────────────────────────────
