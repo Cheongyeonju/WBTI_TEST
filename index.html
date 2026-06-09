@@ -75,7 +75,22 @@
 
   <!-- 헤더: WBTI 로고 + 챕터명 + 진행바 + 카운터 -->
   <div class="quiz-header">
-    <div class="quiz-logo">WBTI</div>
+    <!--
+      ★ 3번: 로고 이미지 파일
+      파일 위치: images/ui/logo.png
+      (images/ui/ 폴더에 logo.png 를 넣으면 자동 적용)
+      이미지 없을 때 텍스트 fallback 자동 표시
+    -->
+    <div class="quiz-logo-wrap">
+      <img
+        src="images/ui/logo.png"
+        alt="WBTI"
+        class="quiz-logo-img"
+        onerror="this.style.display='none';
+                 this.nextElementSibling.style.display='block';"
+      />
+      <div class="quiz-logo" style="display:none;">WBTI</div>
+    </div>
     <div class="chapter-step-wrap">
       <div class="chapter-label" id="chapter-label-text">Chapter 1. 당도</div>
       <div class="step-bar-wrap">
@@ -206,7 +221,17 @@
             stroke="#1a3a2a" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
 
-    <div class="loading-title">WBTI</div>
+    <!-- 2번: 로딩 로고 이미지 (images/ui/logo.png) -->
+    <div class="loading-logo-wrap">
+      <img
+        src="images/ui/logo.png"
+        alt="WBTI"
+        class="loading-logo-img"
+        onerror="this.style.display='none';
+                 this.nextElementSibling.style.display='block';"
+      />
+      <div class="loading-title" style="display:none;">WBTI</div>
+    </div>
     <div class="loading-sub">나의 와인을 찾는 중…</div>
 
   </div>
@@ -245,9 +270,16 @@
   <div class="receipt" id="receipt-card">
     <div class="receipt-inner">
 
-      <!-- WBTI 로고 -->
+      <!-- WBTI 로고 (4번: 이미지로 대체) -->
       <div class="rc-logo-row">
-        <span class="rc-logo" id="result-logo">WBTI</span>
+        <img
+          src="images/ui/logo.png"
+          alt="WBTI"
+          class="rc-logo-img"
+          onerror="this.style.display='none';
+                   this.nextElementSibling.style.display='inline-block';"
+        />
+        <span class="rc-logo" id="result-logo" style="display:none;">WBTI</span>
       </div>
 
       <!-- 캐릭터 이미지 + 이름 + 원산지 -->
@@ -263,12 +295,15 @@
             alt="캐릭터"
             class="rc-char-img"
             onerror="this.style.display='none';
-                     document.getElementById('result-char-fallback').style.display='flex';"
+                     var fb=document.getElementById('result-char-fallback');
+                     if(fb){ fb.style.display='flex'; }"
           />
+          <!-- ★ 9번: 이미지 없을 때 이모지 fallback -->
           <div id="result-char-fallback"
                style="display:none;font-size:72px;line-height:1;
                       width:160px;height:160px;
-                      align-items:center;justify-content:center;">
+                      align-items:center;justify-content:center;
+                      justify-content:center;">
             🍷
           </div>
         </div>

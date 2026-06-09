@@ -8,10 +8,15 @@ let resultCode = '';
 
 // ─── 화면 전환 ────────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.scrollTop = 0;   // 각 화면 내부 스크롤 리셋
+  });
   const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (el) {
+    el.classList.add('active');
+    el.scrollTop = 0;  // 새 화면도 최상단 시작
+  }
 }
 
 // ─── 시작 / 재시도 ────────────────────────────
@@ -109,7 +114,7 @@ function updateCardContent(q, idx) {
   if (txtEl) {
     // Q1, Q2 … 번호를 span 으로 앞에 삽입
     txtEl.innerHTML =
-      `<span class="q-number">Q${idx + 1}</span>${q.text}`;
+      `<span class="q-number">Q${idx + 1}.</span> ${q.text}`;
   }
 
   const img = document.getElementById('q-illust');
@@ -198,16 +203,28 @@ function calcResult() {
 function renderResult(code) {
   const r = results[code] || results['DLEW'];
 
-  // 캐릭터 이미지
+  // ★ 9번: 캐릭터 이미지 — src 설정 전 onerror 등록
   const charImg = document.getElementById('result-char-img');
+  const charFb  = document.getElementById('result-char-fallback');
   if (charImg) {
+    charImg.style.display = 'block';
+    if (charFb) charFb.style.display = 'none';
+
+    charImg.onerror = () => {
+      charImg.style.display = 'none';
+      if (charFb) charFb.style.display = 'flex';
+    };
+    charImg.onload = () => {
+      charImg.style.display = 'block';
+      if (charFb) charFb.style.display = 'none';
+    };
     charImg.src = `images/characters/${code}_c.png`;
-    charImg.alt  = r.name;
+    charImg.alt = r.name;
   }
 
   // 캐릭터 이름 · 원산지
   setEl('result-char-name',   r.name);
-  setEl('result-char-origin', r.origin);
+  setEl('result-char-origin', toOriginCase(r.origin));
 
   // TASTE PROFILE — 번호 + 항목명 + 게이지 + 극단 레이블
   const axDefs = [
@@ -248,14 +265,16 @@ function renderResult(code) {
   // WINE RECOMMENDATION — 소믈리에 추천 1종 (r.wine)
   const w = r.wine || { name:'—', origin:'—', feature:'—' };
 
-  // 와인 이미지: images/wines/{CODE}.png
+  // ★ 10번: 와인 이미지 — src 설정 전 onerror/onload 등록
   const wineImg = document.getElementById('result-wine-img-1');
   if (wineImg) {
-    wineImg.src = `images/wines/${code}.png`;
+    wineImg.style.display = 'block';
     wineImg.onerror = () => { wineImg.style.display = 'none'; };
+    wineImg.onload  = () => { wineImg.style.display = 'block'; };
+    wineImg.src = `images/wines/${code}.png`;
   }
   setEl('result-wine1-name',    w.name);
-  setEl('result-wine1-origin',  w.origin);
+  setEl('result-wine1-origin',  toOriginCase(w.origin || '—'));
   setEl('result-wine1-feature', w.feature);
 
   // 2번째 와인 항목 숨김 (1종만 추천)
@@ -269,6 +288,10 @@ function renderResult(code) {
 }
 
 // ─── 유틸 ────────────────────────────────────
+// 8번: 첫 글자만 대문자, 나머지 소문자 (단어 단위)
+function toOriginCase(str) {
+  return str.toLowerCase().replace(/(?:^|[\s·\/·])\S/g, c => c.toUpperCase());
+}
 function setEl(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
