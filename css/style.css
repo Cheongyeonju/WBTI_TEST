@@ -94,7 +94,7 @@ img    { max-width: 100%; display: block; }
 
 /* ── WBTI 로고 ── */
 .rc-logo-row {
-  padding: 16px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
+  padding: 40px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
   text-align: center;
 }
 .rc-logo {
@@ -104,7 +104,7 @@ img    { max-width: 100%; display: block; }
   display: inline-block;
 }
 .rc-logo-img {
-  height: 32px;        /* ★ 4번: 결과 로고 이미지 크기 */
+  height: 20px;        /* ★ 4번: 결과 로고 이미지 크기 */
   width: auto;
   display: block;
   margin: 0 auto;
@@ -340,7 +340,7 @@ img    { max-width: 100%; display: block; }
 */
 .cover-btn-wrap {
   position: absolute;
-  top: 62%;
+  top: 64%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
@@ -350,7 +350,7 @@ img    { max-width: 100%; display: block; }
 
 /* 버튼: 150px 고정, 배경 없음 */
 .btn-start {
-  width: 150px;
+  width: 130px;
   background: transparent;
   border: none;
   padding: 0;
@@ -455,7 +455,7 @@ img    { max-width: 100%; display: block; }
   height: 32px;
 }
 .quiz-logo-img {
-  height: 28px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
+  height: 22px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
   width: auto;
   display: block;
 }
@@ -498,18 +498,18 @@ img    { max-width: 100%; display: block; }
   width: 100%;
   position: relative; z-index: 1;
   display: flex; justify-content: flex-start;
-  padding: 7px 0 5px;
+  padding: 4px 0 3px;
 }
 #btn-back {
   background: rgba(255,255,255,.55);  /* ★ 7번: 화이트 fill 투명 */
-  border: none;                        /* ★ 7번: 라인 제거 */
+  border: 1.5px solid var(--border);                      
   border-radius: 100px;
   font-family: var(--sans);
-  font-size: 11px; color: var(--ink2);
-  padding: 5px 14px;
+  font-size: 10px; color: var(--ink2);
+  padding: 3px 10px;
   display: flex; align-items: center; gap: 4px;
   transition: background .2s, color .2s;
-  min-width: 44px; min-height: 36px;
+  min-width: 36px; min-height: 28px;
   backdrop-filter: blur(4px);         /* 배경 살짝 블러 */
 }
 #btn-back::before {
