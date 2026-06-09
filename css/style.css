@@ -340,7 +340,7 @@ img    { max-width: 100%; display: block; }
 */
 .cover-btn-wrap {
   position: absolute;
-  top: 64%;
+  top: 66%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
