@@ -25,10 +25,6 @@ function startQuiz() {
   currentQ = 0;
   showScreen('screen-quiz');
   renderQuestion(0, 'none');
-  // 시작 시 앞 3개 이미지 즉시 프리로드
-  [0, 1, 2].forEach(i => {
-    if (questions[i]) preloadImage(questions[i].illust);
-  });
 }
 function retryQuiz() { startQuiz(); }
 
@@ -116,13 +112,23 @@ function renderQuestion(idx, direction) {
   renderOptions(idx, q);
 }
 
-// ─── 이미지 프리로드 캐시 ────────────────────
-const _preloaded = new Set();
+// ─── 이미지 프리로드 ────────────────────────
+// _preloaded: 실제 로드 완료된 이미지만 기록 (요청 중인 것 제외)
+const _preloaded  = new Set();
+const _requesting = new Set(); // 요청 중인 이미지 (중복 방지용)
+
 function preloadImage(src) {
-  if (!src || _preloaded.has(src)) return;
-  _preloaded.add(src);
+  if (!src || _preloaded.has(src) || _requesting.has(src)) return;
+  _requesting.add(src);
   const img = new Image();
+  img.onload  = () => { _preloaded.add(src); };
+  img.onerror = () => { _requesting.delete(src); };
   img.src = src;
+}
+
+// 16개 전체 프리로드 (페이지 로드 직후 호출)
+function preloadAllImages() {
+  questions.forEach(q => preloadImage(q.illust));
 }
 
 // ─── 카드 콘텐츠 갱신 ─────────────────────────
@@ -136,40 +142,17 @@ function updateCardContent(q, idx) {
     txtEl.innerHTML = `<span class="q-number">Q${idx + 1}.</span> ${q.text}`;
   }
 
-  // 이미지 교체 — flash 방지:
-  //   1. 새 이미지를 미리 메모리에 로드
-  //   2. 로드 완료 후에만 img.src 교체 (빈 화면 없음)
-  //   3. 이미 캐시된 경우 즉시 교체
+  // 이미지 교체
+  // preloadAllImages()로 커버 화면에서 이미 모든 이미지를 받아뒀으므로
+  // 브라우저 캐시에서 즉시 반환됨 → src 교체 = 즉시 표시
   const imgEl = document.getElementById('q-illust');
   if (imgEl) {
-    const newSrc = q.illust;
-
-    if (_preloaded.has(newSrc)) {
-      // 이미 프리로드됨 → 즉시 교체 (flash 없음)
-      imgEl.style.display = 'block';
-      imgEl.style.opacity = '1';
-      imgEl.src = newSrc;
-      imgEl.alt = `Q${idx + 1} 일러스트`;
-    } else {
-      // 미캐시 → 로드 완료 후 교체
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        imgEl.src = newSrc;
-        imgEl.alt = `Q${idx + 1} 일러스트`;
-        imgEl.style.display = 'block';
-        imgEl.style.opacity = '1';
-        _preloaded.add(newSrc);
-      };
-      tempImg.onerror = () => {
-        imgEl.style.display = 'none';
-      };
-      tempImg.src = newSrc;
-    }
+    imgEl.alt = `Q${idx + 1} 일러스트`;
+    imgEl.style.display = 'block';
+    imgEl.style.opacity = '1';
+    imgEl.src = q.illust;
+    imgEl.onerror = () => { imgEl.style.display = 'none'; };
   }
-
-  // 다음 + 다다음 질문 이미지 프리로드
-  if (idx + 1 < questions.length) preloadImage(questions[idx + 1].illust);
-  if (idx + 2 < questions.length) preloadImage(questions[idx + 2].illust);
 }
 
 // ─── 선택지 버튼 ──────────────────────────────
@@ -459,4 +442,10 @@ async function shareInstagram() {
   } finally {
     if (btn) btn.classList.remove('loading');
   }
+}
+
+// ─── 페이지 로드 완료 시 전체 이미지 프리로드 ────
+// app.js가 실행되는 시점에 바로 호출 (정의 직후)
+if (typeof preloadAllImages === 'function') {
+  preloadAllImages();
 }
