@@ -61,7 +61,7 @@ const questions = [
     situation: "간식 시간, 견과류가 눈에 들어옵니다.",
     text: "어떤 견과류가 더 땡기나요?",
     illust: "images/illustrations/q06_nuts.png",
-    A: { text: "겉질과 함께 먹는 호두, 아몬드", val: "T" },
+    A: { text: "껍질과 함께 먹는 호두, 아몬드", val: "T" },
     B: { text: "고소하고 부드러운 마카다미아, 캐슈넛", val: "L" }
   },
   {
@@ -72,7 +72,7 @@ const questions = [
     B: { text: "부드럽고 향긋한 라벤더, 캐모마일차", val: "L" }
   },
   {
-    situation: "삼겹살 집에서 고기가 구워지고 있어요.",
+    situation: "고기집에서 고기가 구워지고 있어요.",
     text: "어떤 고기가 더 끌리나요?",
     illust: "images/illustrations/q08_bbq.png",
     A: { text: "토치로 강하게 불맛 입힌 겉바속촉 삼겹살", val: "T" },
@@ -158,7 +158,7 @@ const results = {
     fruit: "🫐",
     axes: { sweet: 88, tannin: 90, acidity: 72, body: 95 },
     wine: {
-      name: "안토리니 아마로네 델라 발폴리첼라 클라시코",
+      name: "안톨리니 아마로네 델라 발폴리첼라 클라시코",
       origin: "ITALY · VENETO",
       feature: "포도를 건조시켜 만든 농밀하고 복잡한 풀바디 레드. 진한 자두와 초콜릿 향이 인상적입니다."
     }
@@ -172,7 +172,7 @@ const results = {
     fruit: "🍒",
     axes: { sweet: 85, tannin: 70, acidity: 75, body: 32 },
     wine: {
-      name: "루사 람브루스코 돌체 에밀리아",
+      name: "브루사 람브루스코 돌체 에밀리아",
       origin: "ITALY · EMILIA",
       feature: "체리와 딸기의 달콤한 향, 부드러운 거품과 함께 즐기는 가볍고 사랑스러운 레드 스파클링."
     }
@@ -300,7 +300,7 @@ const results = {
     wine: {
       name: "킹스 오브 프로히비션 쉬라즈",
       origin: "AUSTRALIA · BAROSSA VALLEY",
-      feature: "블루베리와 후추의 강렬한 풍미, 벨벳같은 타닌. 스테이크와 최고의 궁합을 자랑하는 풀바디."
+      feature: "블루베리와 후추의 강렬한 풍미, 벨벳 같은 타닌. 스테이크와 최고의 궁합을 자랑하는 풀바디."
     }
   },
 
@@ -314,7 +314,7 @@ const results = {
     wine: {
       name: "샹피 부르고뉴 피노누아",
       origin: "FRANCE · BOURGOGNE",
-      feature: "체리와 라즈베리의 우아한 과일향, 실크같은 타닌. 부르고뉴 피노 누아의 섬세한 매력."
+      feature: "체리와 라즈베리의 우아한 과일향, 실크 같은 타닌. 부르고뉴 피노 누아의 섬세한 매력."
     }
   },
 
