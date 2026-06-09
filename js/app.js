@@ -69,20 +69,27 @@ function renderQuestion(idx, direction) {
   // 슬라이드 애니메이션
   const content = document.getElementById('card-content');
   if (content && direction !== 'none') {
+
+    // 1단계: 퇴장 시작 (콘텐츠는 아직 이전 것 유지 → 번쩍임 없음)
     const outCls = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
     content.classList.remove('slide-visible','slide-in-right','slide-in-left');
     content.classList.add(outCls);
 
+    // 2단계: 퇴장 완료 후 새 콘텐츠 로드 + 등장
     setTimeout(() => {
-      updateCardContent(q, idx);
+      updateCardContent(q, idx);           // 퇴장 완료 후 교체 → 번쩍임 없음
+
       const inCls = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
       content.classList.remove(outCls);
       content.classList.add(inCls);
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        content.classList.remove(inCls);
-        content.classList.add('slide-visible');
-      }));
-    }, 210);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {      // 2 rAF: 브라우저가 inCls 위치를 확실히 인식 후 트랜지션
+          content.classList.remove(inCls);
+          content.classList.add('slide-visible');
+        });
+      });
+    }, 180);
 
   } else {
     updateCardContent(q, idx);
@@ -94,11 +101,11 @@ function renderQuestion(idx, direction) {
     }
   }
 
-  // 카드 등장
+  // 카드 등장: void offsetWidth 복원 (remove→add 사이 강제 스타일 플러시)
   const card = document.getElementById('quiz-card');
   if (card) {
     card.classList.remove('slide-in');
-    void card.offsetWidth;
+    void card.offsetWidth;                 // 카드 등장 애니메이션 보장
     card.classList.add('slide-in');
   }
 
@@ -150,9 +157,9 @@ function selectOption(idx, letter) {
     b.classList.toggle('selected', i === (letter === 'A' ? 0 : 1))
   );
   if (idx === questions.length - 1) {
-    setTimeout(goToLoading, 420);
+    setTimeout(goToLoading, 200);
   } else {
-    setTimeout(() => { currentQ = idx + 1; renderQuestion(currentQ, 'next'); }, 320);
+    setTimeout(() => { currentQ = idx + 1; renderQuestion(currentQ, 'next'); }, 200);
   }
 }
 

@@ -94,7 +94,7 @@ img    { max-width: 100%; display: block; }
 
 /* ── WBTI 로고 ── */
 .rc-logo-row {
-  padding: 40px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
+  padding: 16px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
   text-align: center;
 }
 .rc-logo {
@@ -104,7 +104,7 @@ img    { max-width: 100%; display: block; }
   display: inline-block;
 }
 .rc-logo-img {
-  height: 20px;        /* ★ 4번: 결과 로고 이미지 크기 */
+  height: 32px;        /* ★ 4번: 결과 로고 이미지 크기 */
   width: auto;
   display: block;
   margin: 0 auto;
@@ -340,7 +340,7 @@ img    { max-width: 100%; display: block; }
 */
 .cover-btn-wrap {
   position: absolute;
-  top: 70%;
+  top: 62%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
@@ -350,7 +350,7 @@ img    { max-width: 100%; display: block; }
 
 /* 버튼: 150px 고정, 배경 없음 */
 .btn-start {
-  width: 130px;
+  width: 150px;
   background: transparent;
   border: none;
   padding: 0;
@@ -455,7 +455,7 @@ img    { max-width: 100%; display: block; }
   height: 32px;
 }
 .quiz-logo-img {
-  height: 22px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
+  height: 28px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
   width: auto;
   display: block;
 }
@@ -498,18 +498,18 @@ img    { max-width: 100%; display: block; }
   width: 100%;
   position: relative; z-index: 1;
   display: flex; justify-content: flex-start;
-  padding: 4px 0 3px;
+  padding: 7px 0 5px;
 }
 #btn-back {
   background: rgba(255,255,255,.55);  /* ★ 7번: 화이트 fill 투명 */
-  border: 1.5px solid var(--border);                      
+  border: none;                        /* ★ 7번: 라인 제거 */
   border-radius: 100px;
   font-family: var(--sans);
-  font-size: 10px; color: var(--ink2);
-  padding: 3px 10px;
+  font-size: 11px; color: var(--ink2);
+  padding: 5px 14px;
   display: flex; align-items: center; gap: 4px;
   transition: background .2s, color .2s;
-  min-width: 36px; min-height: 28px;
+  min-width: 44px; min-height: 36px;
   backdrop-filter: blur(4px);         /* 배경 살짝 블러 */
 }
 #btn-back::before {
@@ -532,8 +532,9 @@ img    { max-width: 100%; display: block; }
   aspect-ratio: 876 / 820;
   background: transparent;       /* 흰 박스 없음 */
   overflow: visible;
+  will-change: opacity, transform;
   opacity: 0; transform: translateY(10px);
-  transition: opacity .3s ease, transform .3s ease;
+  transition: opacity .25s ease, transform .25s ease;
 }
 .clipboard-wrap.slide-in { opacity: 1; transform: translateY(0); }
 
@@ -574,13 +575,32 @@ img    { max-width: 100%; display: block; }
   z-index: 1;
   display: flex; flex-direction: column;
   overflow: hidden;
-  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  will-change: transform, opacity;
+  /* 기본 transition 없음 — 각 상태에서만 정의 */
 }
-.card-content-wrap.slide-out-left  { transform: translateX(-28px); opacity: 0; pointer-events: none; }
-.card-content-wrap.slide-in-right  { transform: translateX(28px);  opacity: 0; transition: none; }
-.card-content-wrap.slide-out-right { transform: translateX(28px);  opacity: 0; pointer-events: none; }
-.card-content-wrap.slide-in-left   { transform: translateX(-28px); opacity: 0; transition: none; }
-.card-content-wrap.slide-visible   { transform: translateX(0);     opacity: 1; }
+
+/* 퇴장: 빠르게 (180ms) */
+.card-content-wrap.slide-out-left {
+  transform: translateX(-24px); opacity: 0;
+  pointer-events: none;
+  transition: transform .18s ease-in, opacity .18s ease-in;
+}
+.card-content-wrap.slide-out-right {
+  transform: translateX(24px); opacity: 0;
+  pointer-events: none;
+  transition: transform .18s ease-in, opacity .18s ease-in;
+}
+
+/* 등장 초기 위치: transition 없이 즉시 이동 */
+.card-content-wrap.slide-in-right { transform: translateX(24px);  opacity: 0; transition: none; }
+.card-content-wrap.slide-in-left  { transform: translateX(-24px); opacity: 0; transition: none; }
+
+/* 등장 완료: 부드럽게 (220ms) */
+.card-content-wrap.slide-visible {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform .22s cubic-bezier(.2,0,.2,1), opacity .22s ease-out;
+}
 
 /*
   상황 설명: 화이트 컨테이너로 질문과 시각 분리
@@ -633,9 +653,11 @@ img    { max-width: 100%; display: block; }
 #q-illust {
   width: 100%;
   height: 100%;
-  object-fit: contain;               /* ★ 6번: contain으로 잘림 방지 */
+  object-fit: contain;
   object-position: center center;
-  transition: opacity .2s;
+  transition: opacity .15s ease;
+  /* 이미지 디코딩 비동기 처리 → 메인 스레드 블로킹 방지 */
+  decoding: async;
 }
 
 
