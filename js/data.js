@@ -117,7 +117,7 @@ const questions = [
     text: "치킨 옆에 딱 어울리는 음료는 뭔가요?",
     illust: "images/illustrations/q13_beer.png",
     A: { text: "목 넘김이 묵직한 호가든 같은 에일맥주", val: "B" },
-    B: { text: "카스, 테라, 파로니 같은 청량하고 가벼운 라거맥주", val: "W" }
+    B: { text: "카스, 테라, 페로니 같은 청량하고 가벼운 라거맥주", val: "W" }
   },
   {
     situation: "목이 너무 마르던 찰나 커피숍에 들어갔습니다.",
