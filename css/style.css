@@ -55,7 +55,7 @@ img    { max-width: 100%; display: block; }
 #screen-result {
   padding: 20px 20px 44px;
   align-items: center;
-  gap: 16px;
+  gap: 0px;
   background-color: #F5F5F5;   /* ★ 10번: 배경색 변경 */
 }
 .result-header-bar {
@@ -94,7 +94,7 @@ img    { max-width: 100%; display: block; }
 
 /* ── WBTI 로고 ── */
 .rc-logo-row {
-  padding: 16px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
+  padding: 46px 24px 8px;    /* ★ 6번: 상단 28→16, 하단 16→8 */
   text-align: center;
 }
 .rc-logo {
@@ -104,7 +104,7 @@ img    { max-width: 100%; display: block; }
   display: inline-block;
 }
 .rc-logo-img {
-  height: 32px;        /* ★ 4번: 결과 로고 이미지 크기 */
+  height: 26px;        /* ★ 4번: 결과 로고 이미지 크기 */
   width: auto;
   display: block;
   margin: 0 auto;
@@ -117,7 +117,7 @@ img    { max-width: 100%; display: block; }
   padding: 0 24px 10px;      /* ★ 7번: 하단 패딩 20→10 */
 }
 .rc-char-img-wrap {
-  width: 120px; height: 120px;    /* ★ 7번: 이미지 160→120 */
+  width: 140px; height: 140px;    /* ★ 7번: 이미지 160→120 */
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 8px;             /* ★ 7번: 14→8 */
 }
@@ -455,7 +455,7 @@ img    { max-width: 100%; display: block; }
   height: 32px;
 }
 .quiz-logo-img {
-  height: 28px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
+  height: 22px;   /* ★ 2번: 이 값을 바꾸면 로고 크기 조정됩니다 */
   width: auto;
   display: block;
 }
