@@ -339,16 +339,17 @@ async function buildShareCanvas() {
   const card = document.getElementById('receipt-card');
 
   // ── 캡처 전: 게이지 바 트랜지션 OFF + 목표값 즉시 적용 ──
-  // 이유: transition: width 1s .6s 가 진행 중일 때 html2canvas가 캡처하면
-  //       바가 중간 상태(0~목표 사이)로 찍혀 겹침 현상 발생
   const fills = card.querySelectorAll('.rc-axis-bar-fill');
   fills.forEach(bar => {
-    bar.style.transition = 'none';                    // 트랜지션 즉시 OFF
-    bar.style.width      = (bar.dataset.target || '0') + '%'; // 목표값 즉시 적용
+    bar.style.transition = 'none';
+    bar.style.width      = (bar.dataset.target || '0') + '%';
   });
 
-  // 브라우저가 스타일을 반영할 시간 확보 (1 rAF)
-  await new Promise(resolve => requestAnimationFrame(resolve));
+  // 강제 리플로우 → 브라우저가 즉시 스타일 반영
+  void card.offsetHeight;
+
+  // rAF 2회 대기 → 페인트까지 완전히 완료된 후 캡처
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
   // receipt-card 캡처:
   // position:fixed 컨텍스트이므로 scrollX/Y=0, windowWidth/Height=뷰포트로 설정
