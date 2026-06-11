@@ -338,15 +338,35 @@ function showToast(msg) {
 async function buildShareCanvas() {
   const card = document.getElementById('receipt-card');
 
-  // receipt-card를 고해상도로 캡처
+  // ── 캡처 전: 게이지 바 트랜지션 OFF + 목표값 즉시 적용 ──
+  // 이유: transition: width 1s .6s 가 진행 중일 때 html2canvas가 캡처하면
+  //       바가 중간 상태(0~목표 사이)로 찍혀 겹침 현상 발생
+  const fills = card.querySelectorAll('.rc-axis-bar-fill');
+  fills.forEach(bar => {
+    bar.style.transition = 'none';                    // 트랜지션 즉시 OFF
+    bar.style.width      = (bar.dataset.target || '0') + '%'; // 목표값 즉시 적용
+  });
+
+  // 브라우저가 스타일을 반영할 시간 확보 (1 rAF)
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  // receipt-card 캡처:
+  // position:fixed 컨텍스트이므로 scrollX/Y=0, windowWidth/Height=뷰포트로 설정
   const cardCanvas = await html2canvas(card, {
     scale: 3,
     backgroundColor: '#F5F5F5',
     useCORS: true,
     logging: false,
     allowTaint: true,
-    windowWidth:  card.scrollWidth,
-    windowHeight: card.scrollHeight
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth:  document.documentElement.clientWidth,
+    windowHeight: document.documentElement.clientHeight
+  });
+
+  // ── 캡처 후: 트랜지션 원상복구 ──
+  fills.forEach(bar => {
+    bar.style.transition = '';  // CSS 원래 값으로 복구
   });
 
   // 캔버스 크기 = 카드 크기 + 상하좌우 여백 60px
