@@ -1,10 +1,54 @@
 // =============================================
-// WBTI — app.js
+// WBTI — app.js  (v8)
 // =============================================
 
-let answers    = new Array(16).fill(null);
-let currentQ   = 0;
-let resultCode = '';
+// ─── 서비스 설정 ─────────────────────────────
+const WBTI_URL      = 'https://wbti-test-drab.vercel.app/';
+const KAKAO_JS_KEY  = 'YOUR_KAKAO_JS_KEY'; // ← 카카오 JavaScript 키 입력
+
+// ─── 상태 변수 ───────────────────────────────
+let answers     = new Array(16).fill(null);
+let currentQ    = 0;
+let resultCode  = '';
+let selectedAge = '';
+let currentLang = 'ko';  // 언어 상태: 'ko' | 'en'
+
+// ─── 챕터 컬러 (함수보다 먼저 선언 필수) ─────
+const CHAPTER_COLORS = ['#1a3a2a','#6b1f2a','#7a5c1e','#2a3a5a'];
+
+// ─── Supabase 초기화 ─────────────────────────
+// ★ 실제 값으로 교체하세요
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabaseClient = (
+  typeof supabase !== 'undefined' &&
+  SUPABASE_URL !== 'YOUR_SUPABASE_URL' &&
+  SUPABASE_URL.startsWith('http')
+) ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// ─── 카카오 초기화 ───────────────────────────
+function initKakao() {
+  if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+    try { Kakao.init(KAKAO_JS_KEY); } catch(e) { console.warn('Kakao init 실패:', e); }
+  }
+}
+
+// ─── Supabase 저장 ───────────────────────────
+async function saveToSupabase(code, age) {
+  if (!supabaseClient) { console.warn('Supabase 미연결'); return; }
+  try {
+    const { error } = await supabaseClient
+      .from('wbti_results')
+      .insert([{
+        result_code: code,
+        age_group:   age || '미응답',
+        created_at:  new Date().toISOString()
+      }]);
+    if (error) console.error('Supabase 저장 오류:', error);
+  } catch(e) {
+    console.error('Supabase 오류:', e);
+  }
+}
 
 // ─── 화면 전환 ────────────────────────────────
 function showScreen(id) {
@@ -16,12 +60,125 @@ function showScreen(id) {
   if (el) { el.classList.add('active'); el.scrollTop = 0; }
 }
 
+// ─── 언어 토글 ───────────────────────────────
+function setLang(lang) {
+  currentLang = lang;
+
+  // 버튼 active 상태 교체
+  document.getElementById('btn-lang-ko')?.classList.toggle('active', lang === 'ko');
+  document.getElementById('btn-lang-en')?.classList.toggle('active', lang === 'en');
+
+  // 4. '선택지를 골라주세요' 영문 처리
+  const optHeader = document.querySelector('.options-header');
+  if (optHeader && optHeader.id !== 'age-question-text') {
+    optHeader.textContent = lang === 'ko' ? '선택지를 골라주세요' : 'Choose your answer';
+  }
+
+  // 현재 활성 화면에 따라 재렌더링
+  const activeScreen = document.querySelector('.screen.active');
+  if (!activeScreen) return;
+
+  switch(activeScreen.id) {
+    case 'screen-quiz':
+      renderQuestion(currentQ, 'none');
+      break;
+    case 'screen-result':
+      renderResult(resultCode);
+      break;
+    case 'screen-age':
+      renderAgePage();
+      break;
+  }
+
+  // 3. 퀴즈 이전 버튼 텍스트
+  const backBtn = document.getElementById('btn-back');
+  if (backBtn) {
+    const txt = backBtn.querySelector('span') || backBtn;
+    // btn-back은 텍스트노드로 "이전" 포함
+    backBtn.childNodes.forEach(n => {
+      if (n.nodeType === 3 && n.textContent.trim()) {
+        n.textContent = lang === 'ko' ? '이전' : 'Back';
+      }
+    });
+  }
+
+  // 공유 팝업 텍스트 업데이트
+  updateSharePopupLang();
+  // 저장 버튼 텍스트
+  const saveBtn = document.getElementById('btn-save');
+  if (saveBtn) {
+    const icon = saveBtn.querySelector('.btn-action-icon');
+    saveBtn.innerHTML = '';
+    const sp = document.createElement('span');
+    sp.className = 'btn-action-icon'; sp.textContent = '⬇';
+    saveBtn.appendChild(sp);
+    saveBtn.appendChild(document.createTextNode(lang === 'ko' ? '갤러리 저장' : 'Save'));
+    saveBtn.onclick = saveImage;
+  }
+  const shareLabel = document.getElementById('btn-share-label');
+  if (shareLabel) shareLabel.textContent = lang === 'ko' ? '공유하기' : 'Share';
+}
+
+function updateSharePopupLang() {
+  const ko = currentLang === 'ko';
+  const title = document.getElementById('share-popup-title');
+  const desc  = document.getElementById('share-popup-desc');
+  if (title) title.textContent = ko ? '공유하기' : 'Share';
+  if (desc)  desc.textContent  = ko ? '나의 WBTI 결과를 공유해보세요' : 'Share your WBTI result!';
+  const kakaoL = document.getElementById('share-kakao-label');
+  const igL    = document.getElementById('share-ig-label');
+  const linkL  = document.getElementById('share-link-label');
+  if (kakaoL) kakaoL.textContent = ko ? '카카오톡' : 'KakaoTalk';
+  if (igL)    igL.textContent    = ko ? '인스타그램' : 'Instagram';
+  if (linkL)  linkL.textContent  = ko ? '링크 복사' : 'Copy Link';
+}
+
+function renderAgePage() {
+  const ko = currentLang === 'ko';
+
+  // 2. 질문 텍스트 영문 처리
+  const qEl = document.getElementById('age-question-text');
+  if (qEl) qEl.textContent = ko ? '나이대가 어떻게 되시나요?' : 'What is your age group?';
+
+  // 3. 이전 버튼 영문 처리
+  const backLabel = document.getElementById('age-back-label');
+  if (backLabel) backLabel.textContent = ko ? '이전' : 'Back';
+
+  // 선택지 레이블
+  const labels = ko
+    ? ['20대', '30대', '40대', '50대', '60세 이상']
+    : ['20s', '30s', '40s', '50s', '60 or older'];
+  labels.forEach((txt, i) => {
+    const el = document.getElementById(`age-label-${i + 1}`);
+    if (el) el.textContent = txt;
+  });
+}
+
+// ─── 나이대 선택 ─────────────────────────────
+function selectAge(age) {
+  // 영문 모드일 때도 DB에는 한글로 저장
+  const ageMap = {
+    '20s':'20대', '30s':'30대', '40s':'40대',
+    '50s':'50대', '60 or older':'60세 이상'
+  };
+  selectedAge = ageMap[age] || age;
+  // 선택 표시
+  document.querySelectorAll('.age-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.trim() === age);
+  });
+  // 200ms 후 퀴즈 시작
+  setTimeout(() => {
+    answers  = new Array(16).fill(null);
+    currentQ = 0;
+    showScreen('screen-quiz');
+    renderQuestion(0, 'none');
+  }, 200);
+}
+
 // ─── 시작 / 재시도 ────────────────────────────
 function startQuiz() {
-  answers  = new Array(16).fill(null);
-  currentQ = 0;
-  showScreen('screen-quiz');
-  renderQuestion(0, 'none');
+  selectedAge = '';
+  showScreen('screen-age');
 }
 function retryQuiz() { startQuiz(); }
 
@@ -32,19 +189,15 @@ function getChapter(idx) {
 
 // ══════════════════════════════════════════════
 // 이미지 캐시 시스템
-// ── 원리 ──────────────────────────────────────
-//   HTMLImageElement를 Map에 보관.
-//   프리로드 완료된 img 객체의 src만 신뢰.
-//   교체 시 src 대입 대신 img 노드 자체를 swap.
 // ══════════════════════════════════════════════
-const imgCache = new Map(); // src → HTMLImageElement (로드완료)
+const imgCache = new Map();
 
 function preloadImage(src) {
   if (!src || imgCache.has(src)) return Promise.resolve();
   return new Promise(resolve => {
     const img = new Image();
     img.onload  = () => { imgCache.set(src, img); resolve(); };
-    img.onerror = () => { resolve(); }; // 실패해도 진행
+    img.onerror = () => { resolve(); };
     img.src = src;
   });
 }
@@ -59,10 +212,9 @@ function renderQuestion(idx, direction) {
   const total = questions.length;
   const ch    = getChapter(idx);
 
-  setEl('chapter-label-text', ch ? ch.name : '');
+  setEl('chapter-label-text', ch ? (currentLang==='en' ? ch.name_en : ch.name) : '');
   applyChapterColor(idx);
 
-  // 진행 도트
   const track = document.getElementById('step-track');
   if (track) {
     track.innerHTML = '';
@@ -79,7 +231,6 @@ function renderQuestion(idx, direction) {
   const back = document.getElementById('btn-back');
   if (back) { back.style.opacity = '1'; back.style.pointerEvents = 'all'; }
 
-  // 슬라이드 애니메이션
   const content = document.getElementById('card-content');
   if (content && direction !== 'none') {
     const outCls = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
@@ -96,7 +247,6 @@ function renderQuestion(idx, direction) {
         content.classList.add('slide-visible');
       }));
     }, 180);
-
   } else {
     updateCardContent(q, idx);
     if (content) {
@@ -117,34 +267,23 @@ function renderQuestion(idx, direction) {
   renderOptions(idx, q);
 }
 
-// ─── 카드 콘텐츠 갱신 ─────────────────────────
-// Flash 방지 핵심:
-//   illust-area 안에 img를 두 개 운용 (A/B swap)
-//   새 이미지가 완전히 로드된 후 보이는 쪽만 전환
-// ─────────────────────────────────────────────
-let _activeSlot = 'a'; // 현재 보이는 슬롯
+// ─── 카드 콘텐츠 갱신 (A/B 슬롯 swap) ────────
+let _activeSlot = 'a';
 
 function updateCardContent(q, idx) {
   const sitEl = document.getElementById('q-situation');
   const txtEl = document.getElementById('q-text');
-  if (sitEl) sitEl.textContent = q.situation;
+  if (sitEl) sitEl.textContent = currentLang === 'en' ? q.situation_en : q.situation;
   if (txtEl) {
-    txtEl.innerHTML = `<span class="q-number">Q${idx + 1}.</span> ${q.text}`;
+    txtEl.innerHTML = `<span class="q-number">Q${idx + 1}.</span> ${currentLang === 'en' ? q.text_en : q.text}`;
   }
 
-  const area   = document.getElementById('illust-area-inner');
-  const slotA  = document.getElementById('illust-slot-a');
-  const slotB  = document.getElementById('illust-slot-b');
-  if (!area || !slotA || !slotB) {
-    // fallback: 기존 단일 img 방식
-    const imgEl = document.getElementById('q-illust');
-    if (imgEl) { imgEl.src = q.illust; imgEl.alt = `Q${idx + 1}`; }
-    return;
-  }
+  const slotA = document.getElementById('illust-slot-a');
+  const slotB = document.getElementById('illust-slot-b');
+  if (!slotA || !slotB) return;
 
   const nextSlot = _activeSlot === 'a' ? slotB : slotA;
   const curSlot  = _activeSlot === 'a' ? slotA : slotB;
-
   const src = q.illust;
 
   function swapSlots() {
@@ -154,12 +293,10 @@ function updateCardContent(q, idx) {
   }
 
   if (imgCache.has(src)) {
-    // 캐시 히트: 즉시 swap
     nextSlot.src = src;
     nextSlot.alt = `Q${idx + 1}`;
     swapSlots();
   } else {
-    // 캐시 미스: 로드 완료 후 swap
     nextSlot.onload  = () => { imgCache.set(src, nextSlot); swapSlots(); };
     nextSlot.onerror = () => { nextSlot.style.display = 'none'; };
     nextSlot.src = src;
@@ -177,7 +314,7 @@ function renderOptions(idx, q) {
     btn.className = 'option-btn' + (answers[idx] === l ? ' selected' : '');
     btn.innerHTML =
       `<div class="option-letter">${l}</div>` +
-      `<div class="option-text">${q[l].text}</div>`;
+      `<div class="option-text">${currentLang === 'en' ? q[l].text_en : q[l].text}</div>`;
     btn.addEventListener('click', () => selectOption(idx, l));
     wrap.appendChild(btn);
   });
@@ -198,12 +335,12 @@ function selectOption(idx, letter) {
 
 // ─── 이전 이동 ────────────────────────────────
 function goPrev() {
-  if (currentQ === 0) { showScreen('screen-cover'); }
+  if (currentQ === 0) { showScreen('screen-age'); }
   else { currentQ--; renderQuestion(currentQ, 'prev'); }
 }
 
 // ─── 로딩 → 결과 ──────────────────────────────
-function goToLoading() {
+async function goToLoading() {
   showScreen('screen-loading');
   const rect = document.getElementById('wine-fill-rect');
   if (rect) {
@@ -211,15 +348,16 @@ function goToLoading() {
     void rect.getBoundingClientRect();
     rect.style.animation = '';
   }
-  setTimeout(() => {
+  setTimeout(async () => {
     resultCode = calcResult();
     renderResult(resultCode);
     showScreen('screen-result');
+    // Supabase 저장 (비동기, UI 블로킹 없음)
+    await saveToSupabase(resultCode, selectedAge);
   }, 2200);
 }
 
 // ─── 챕터 색상 ────────────────────────────────
-const CHAPTER_COLORS = ['#1a3a2a','#6b1f2a','#7a5c1e','#2a3a5a'];
 function applyChapterColor(idx) {
   const chIdx = CHAPTERS.findIndex(c => idx >= c.range[0] && idx <= c.range[1]);
   const color  = CHAPTER_COLORS[chIdx >= 0 ? chIdx : 0];
@@ -237,6 +375,10 @@ function calcResult() {
 function renderResult(code) {
   const r = results[code] || results['DLEW'];
 
+  // ── 코드 표시 (로고 대신) ──
+  setEl('result-code-display', code);
+
+  // ── 캐릭터 ──
   const charImg = document.getElementById('result-char-img');
   const charFb  = document.getElementById('result-char-fallback');
   if (charImg) {
@@ -254,40 +396,85 @@ function renderResult(code) {
     charImg.alt = r.name;
   }
 
-  setEl('result-char-name',   r.name);
+  setEl('result-char-name',   currentLang === 'en' ? r.name_en    : r.name);
   setEl('result-char-origin', toOriginCase(r.origin));
 
+  // ── TASTE PROFILE — 중앙 양방향 게이지 ──
+  // 4축 정의: key, 레이블, lo쪽(코드값), hi쪽(코드값), 챕터 컬러
+  const _en = currentLang === 'en';
+  // axes 수치 실제 의미:
+  //   sweet   = S(스위트)  방향 강도 → rawCode:'S'
+  //   tannin  = T(강한)    방향 강도 → rawCode:'T'
+  //   acidity = F(높은산미) 방향 강도 → rawCode:'F'
+  //   body    = B(풀바디)  방향 강도 → rawCode:'B'
   const axDefs = [
-    { key:'sweet',   label:'당도',   lo:'스위트',   hi:'드라이'  },
-    { key:'tannin',  label:'타닌',   lo:'부드러운', hi:'강한'    },
-    { key:'acidity', label:'산미',   lo:'낮음',     hi:'높음'    },
-    { key:'body',    label:'바디감', lo:'라이트',   hi:'풀바디'  }
+    { key:'sweet',   rawCode:'S', label:_en?'Sweetness':'당도',  lo:_en?'Sweet':'스위트',    loCode:'S', hi:_en?'Dry':'드라이',          hiCode:'D', color:'#1a3a2a' },
+    { key:'tannin',  rawCode:'T', label:_en?'Tannin':'타닌',     lo:_en?'Smooth':'부드러운', loCode:'L', hi:_en?'Strong':'강한',         hiCode:'T', color:'#6b1f2a' },
+    { key:'acidity', rawCode:'F', label:_en?'Acidity':'산미',    lo:_en?'Low':'낮음',        loCode:'E', hi:_en?'High':'높음',           hiCode:'F', color:'#7a5c1e' },
+    { key:'body',    rawCode:'B', label:_en?'Body':'바디감',      lo:_en?'Light':'라이트',    loCode:'W', hi:_en?'Full Body':'풀바디',    hiCode:'B', color:'#2a3a5a' }
   ];
+
+  // 코드에서 각 축 우세 방향 파악
+  const codeMap = {
+    sweet:   code[0],   // S or D
+    tannin:  code[1],   // T or L
+    acidity: code[2],   // F or E
+    body:    code[3]    // B or W
+  };
+
   const axesEl = document.getElementById('result-axes');
   if (axesEl) {
-    axesEl.innerHTML = axDefs.map((ax, i) => `
+    axesEl.innerHTML = axDefs.map((ax, i) => {
+      // axes 수치(rawPct)는 rawCode 방향의 강도
+      // rawCode가 loCode이면: lo방향=rawPct, hi방향=100-rawPct
+      // rawCode가 hiCode이면: hi방향=rawPct, lo방향=100-rawPct
+      const rawPct   = r.axes[ax.key];
+      const dominant = codeMap[ax.key];
+
+      const isRawLo = (ax.rawCode === ax.loCode);  // rawPct가 lo방향인지
+      const loW = isRawLo ? rawPct       : (100 - rawPct);
+      const hiW = isRawLo ? (100-rawPct) : rawPct;
+
+      // dominant가 loCode면 lo쪽이 우세
+      const isLoDominant = (dominant === ax.loCode);
+
+      const loPct = loW;
+      const hiPct = hiW;
+
+      // 볼드/컬러 클래스
+      const loPctCls  = isLoDominant  ? 'rc-axis-pct-lo dominant'     : 'rc-axis-pct-lo';
+      const hiPctCls  = !isLoDominant ? 'rc-axis-pct-hi dominant'     : 'rc-axis-pct-hi';
+      const loLblCls  = isLoDominant  ? 'rc-axis-label-lo dominant'   : 'rc-axis-label-lo';
+      const hiLblCls  = !isLoDominant ? 'rc-axis-label-hi dominant'   : 'rc-axis-label-hi';
+
+      return `
       <div class="rc-axis-item">
-        <div class="rc-axis-top-row">
-          <span class="rc-axis-name">${i+1}. ${ax.label}</span>
-          <span class="rc-axis-pct">${r.axes[ax.key]}%</span>
+        <span class="rc-axis-name">${i+1}. ${ax.label}</span>
+        <div class="rc-axis-bar-row">
+          <!-- 좌: lo 퍼센트 + 레이블 -->
+          <div class="rc-axis-left-block">
+            <span class="${loPctCls}" style="--axis-color:${ax.color}">${loPct}%</span>
+            <span class="${loLblCls}" style="--axis-color:${ax.color}">${ax.lo}</span>
+          </div>
+          <!-- 중앙: 게이지 바 -->
+          <div class="rc-axis-bar-track">
+            <div class="rc-axis-bar-center"></div>
+            <div class="rc-axis-bar-lo" style="width:${loW/2}%; background:${ax.color};"></div>
+            <div class="rc-axis-bar-hi" style="width:${hiW/2}%; background:${ax.color};"></div>
+          </div>
+          <!-- 우: 레이블 + hi 퍼센트 -->
+          <div class="rc-axis-right-block">
+            <span class="${hiPctCls}" style="--axis-color:${ax.color}">${hiPct}%</span>
+            <span class="${hiLblCls}" style="--axis-color:${ax.color}">${ax.hi}</span>
+          </div>
         </div>
-        <div class="rc-axis-bar-track">
-          <div class="rc-axis-bar-fill" style="width:0%" data-target="${r.axes[ax.key]}"></div>
-        </div>
-        <div class="rc-axis-bottom-row">
-          <span class="rc-axis-label-lo">${ax.lo}</span>
-          <span class="rc-axis-label-hi">${ax.hi}</span>
-        </div>
-      </div>`).join('');
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      axesEl.querySelectorAll('.rc-axis-bar-fill').forEach(b => {
-        b.style.width = b.dataset.target + '%';
-      });
-    }));
+      </div>`;
+    }).join('');
   }
 
-  setEl('result-feature', r.feature);
+  setEl('result-feature', currentLang === 'en' ? r.feature_en : r.feature);
 
+  // ── 와인 추천 ──
   const w = r.wine || { name:'—', origin:'—', feature:'—' };
   const wineImg = document.getElementById('result-wine-img-1');
   if (wineImg) {
@@ -296,27 +483,132 @@ function renderResult(code) {
     wineImg.onload  = () => { wineImg.style.display = 'block'; };
     wineImg.src = `images/wines/${code}.png`;
   }
-  setEl('result-wine1-name',    w.name);
+  setEl('result-wine1-name',    currentLang === 'en' ? (w.name_en || w.name) : w.name);
   setEl('result-wine1-origin',  toOriginCase(w.origin || '—'));
-  setEl('result-wine1-feature', w.feature);
+  setEl('result-wine1-feature', currentLang === 'en' ? (w.feature_en || w.feature) : w.feature);
 
   const wine2El = document.getElementById('rc-wine-2');
   if (wine2El) wine2El.style.display = 'none';
 
   const now = new Date();
   setEl('result-date',
-    `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE PAIRING`);
+    currentLang === 'en'
+      ? `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE WORKS`
+      : `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE WORKS`);
+}
+
+// ─── 와인 팝업 ────────────────────────────────
+function openWinePopup() {
+  const r = results[resultCode] || results['DLEW'];
+  const w = r.wine || {};
+
+  // 팝업 이미지
+  const popImg = document.getElementById('popup-wine-img');
+  if (popImg) {
+    popImg.src = `images/wines/${resultCode}.png`;
+    popImg.onerror = () => { popImg.style.display = 'none'; };
+  }
+
+  setEl('popup-wine-name',    currentLang === 'en' ? (w.name_en || w.name || '—') : (w.name || '—'));
+  setEl('popup-wine-origin',  toOriginCase(w.origin  || '—'));
+  setEl('popup-wine-grape',   w.grape   || '');
+  setEl('popup-wine-tasting', currentLang === 'en' ? (w.tasting_note_en || w.tasting_note || '—') : (w.tasting_note || '—'));
+  setEl('popup-wine-pairing', currentLang === 'en' ? (w.pairing_en || w.pairing || '—') : (w.pairing || '—'));
+  setEl('popup-wine-price',   w.price_range  ? `💰 ${w.price_range}` : '');
+
+  const popup = document.getElementById('wine-popup');
+  if (popup) popup.style.display = 'flex';
+}
+
+function closeWinePopup() {
+  const popup = document.getElementById('wine-popup');
+  if (popup) popup.style.display = 'none';
 }
 
 // ─── 유틸 ────────────────────────────────────
 function toOriginCase(str) {
-  return str.toLowerCase().replace(/(?:^|[\s·\/])[^\s]/g, c => c.toUpperCase());
+  return str.toLowerCase().replace(/(^|[\s/·])([^\s])/g, (_, sep, ch) => sep + ch.toUpperCase());
 }
 function setEl(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
 function pad(n) { return String(n).padStart(2,'0'); }
+
+
+// ─── 공유 팝업 ───────────────────────────────
+function openSharePopup() {
+  updateSharePopupLang();
+  const popup = document.getElementById('share-popup');
+  if (popup) popup.style.display = 'flex';
+}
+function closeSharePopup() {
+  const popup = document.getElementById('share-popup');
+  if (popup) popup.style.display = 'none';
+}
+
+// 카카오톡 공유
+function shareKakao() {
+  const r = results[resultCode] || results['DLEW'];
+  if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+    const ko = currentLang === 'ko';
+    showToast(ko ? '카카오 키를 설정해주세요' : 'Kakao key not configured');
+    return;
+  }
+  const ko = currentLang === 'ko';
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: ko ? `나의 WBTI는 ${resultCode}! ${r.name}` : `My WBTI is ${resultCode}! ${r.name_en || r.name}`,
+      description: ko
+        ? '나만의 와인 취향을 찾아보세요 🍷'
+        : 'Find your perfect wine match 🍷',
+      imageUrl: WBTI_URL + 'images/cover_bg.png',
+      link: { mobileWebUrl: WBTI_URL, webUrl: WBTI_URL }
+    },
+    buttons: [{
+      title: ko ? 'WBTI 테스트 하기' : 'Take the WBTI Test',
+      link:  { mobileWebUrl: WBTI_URL, webUrl: WBTI_URL }
+    }]
+  });
+  closeSharePopup();
+}
+
+// 인스타그램 공유 (Web Share API로 링크 공유)
+function shareToInstagram() {
+  const r  = results[resultCode] || results['DLEW'];
+  const ko = currentLang === 'ko';
+  const text = ko
+    ? `나의 WBTI는 ${resultCode}! ${r.name}
+${WBTI_URL}
+#WBTI #와인취향 #나의첫와인`
+    : `My WBTI is ${resultCode}! ${r.name_en || r.name}
+${WBTI_URL}
+#WBTI #WineTaste`;
+
+  if (navigator.share) {
+    navigator.share({ title: 'WBTI', text, url: WBTI_URL })
+      .then(() => closeSharePopup())
+      .catch(e => { if (e.name !== 'AbortError') console.error(e); });
+  } else {
+    // 미지원 시 링크 복사 fallback
+    navigator.clipboard.writeText(WBTI_URL).then(() => {
+      showToast(ko ? '링크가 복사됐어요! 인스타에 붙여넣기 해주세요 📸' : 'Link copied! Paste it on Instagram 📸');
+      closeSharePopup();
+    });
+  }
+}
+
+// 링크 복사
+function copyLink() {
+  const ko = currentLang === 'ko';
+  navigator.clipboard.writeText(WBTI_URL).then(() => {
+    showToast(ko ? '링크가 복사됐어요! 🔗' : 'Link copied! 🔗');
+    closeSharePopup();
+  }).catch(() => {
+    showToast(ko ? '복사에 실패했어요.' : 'Failed to copy.');
+  });
+}
 
 // ─── 토스트 ───────────────────────────────────
 function showToast(msg) {
@@ -329,30 +621,9 @@ function showToast(msg) {
 
 // ══════════════════════════════════════════════
 // 이미지 저장 / 공유
-// ── 문제 3 수정 ───────────────────────────────
-//   고정 1920px 캔버스 폐기.
-//   receipt-card를 실제 크기대로 캡처 후
-//   좌우 패딩만 추가한 자연스러운 비율로 저장.
-//   레이아웃 깨짐 없음.
 // ══════════════════════════════════════════════
 async function buildShareCanvas() {
   const card = document.getElementById('receipt-card');
-
-  // ── 캡처 전: 게이지 바 트랜지션 OFF + 목표값 즉시 적용 ──
-  const fills = card.querySelectorAll('.rc-axis-bar-fill');
-  fills.forEach(bar => {
-    bar.style.transition = 'none';
-    bar.style.width      = (bar.dataset.target || '0') + '%';
-  });
-
-  // 강제 리플로우 → 브라우저가 즉시 스타일 반영
-  void card.offsetHeight;
-
-  // rAF 2회 대기 → 페인트까지 완전히 완료된 후 캡처
-  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-  // receipt-card 캡처:
-  // position:fixed 컨텍스트이므로 scrollX/Y=0, windowWidth/Height=뷰포트로 설정
   const cardCanvas = await html2canvas(card, {
     scale: 3,
     backgroundColor: '#F5F5F5',
@@ -365,36 +636,24 @@ async function buildShareCanvas() {
     windowHeight: document.documentElement.clientHeight
   });
 
-  // ── 캡처 후: 트랜지션 원상복구 ──
-  fills.forEach(bar => {
-    bar.style.transition = '';  // CSS 원래 값으로 복구
-  });
-
-  // 캔버스 크기 = 카드 크기 + 상하좌우 여백 60px
   const PAD_X = 60, PAD_Y = 80;
   const out   = document.createElement('canvas');
   out.width   = cardCanvas.width  + PAD_X * 2;
   out.height  = cardCanvas.height + PAD_Y * 2;
   const ctx   = out.getContext('2d');
 
-  // 배경
   ctx.fillStyle = '#F5F5F5';
   ctx.fillRect(0, 0, out.width, out.height);
-
-  // 카드 그대로 중앙에 삽입
   ctx.drawImage(cardCanvas, PAD_X, PAD_Y);
 
-  // 하단 워터마크
   ctx.font      = '32px "Share Tech Mono", monospace';
   ctx.fillStyle = 'rgba(26,58,42,.25)';
   ctx.textAlign = 'center';
-  ctx.fillText('WBTI · Wine Base Taste Index',
-    out.width / 2, out.height - 28);
+  ctx.fillText('WBTI · Wine Base Taste Index', out.width / 2, out.height - 28);
 
   return out;
 }
 
-// ─── 갤러리 저장 ──────────────────────────────
 async function saveImage() {
   const btn = document.getElementById('btn-save');
   if (btn) btn.classList.add('loading');
@@ -426,7 +685,6 @@ async function saveImage() {
   }
 }
 
-// ─── 인스타 공유 ──────────────────────────────
 async function shareInstagram() {
   const r   = results[resultCode] || results['DLEW'];
   const btn = document.getElementById('btn-share-insta');
@@ -462,5 +720,6 @@ async function shareInstagram() {
   }
 }
 
-// ─── 앱 시작: 전체 이미지 프리로드 ───────────
+// ─── 앱 시작 ─────────────────────────────────
 preloadAllImages();
+initKakao();

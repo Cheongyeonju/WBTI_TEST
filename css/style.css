@@ -2,7 +2,7 @@
    WBTI — style.css  v5  (최종)
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;500;600&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;500;600:700;900&family=Share+Tech+Mono&display=swap');
 
 :root {
   --bg:      #f4f1eb;
@@ -58,14 +58,19 @@ img    { max-width: 100%; display: block; }
   gap: 0px;
   background-color: #F5F5F5;
 }
+
+/* ✅ 수정 1: Your Result 제거 — Retry 버튼만 우측 정렬 */
 .result-header-bar {
-  display: flex; justify-content: space-between; align-items: center;
-  width: 100%; padding: 16px 20px 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  padding: 16px 20px 12px;
 }
 .result-label {
-  font-family: var(--digital); font-size: 10px;
-  letter-spacing: .14em; color: var(--ink2); text-transform: uppercase;
+  display: none;
 }
+
 .btn-retry {
   font-family: var(--digital); font-size: 9px; letter-spacing: .08em;
   color: var(--ink2); background: rgba(255,255,255,.7);
@@ -87,7 +92,7 @@ img    { max-width: 100%; display: block; }
 }
 
 .rc-logo-row {
-  padding: 46px 24px 8px;
+  padding: 46px 24px 0px;
   text-align: center;
 }
 .rc-logo {
@@ -103,13 +108,34 @@ img    { max-width: 100%; display: block; }
   margin: 0 auto;
 }
 
+/* ✅ 수정 2: WBTI TEST 뱃지 */
+.rc-wbti-badge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.rc-wbti-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 16px;
+  border-radius: 100px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .rc-char-block {
   display: flex; flex-direction: column;
   align-items: center;
   padding: 0 24px 10px;
 }
 .rc-char-img-wrap {
-  width: 140px; height: 140px;
+  width: 150px; height: 150px;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 8px;
 }
@@ -117,7 +143,7 @@ img    { max-width: 100%; display: block; }
   width: 100%; height: 100%; object-fit: contain;
 }
 .rc-char-name {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 15px; font-weight: 700;
   color: var(--ink); letter-spacing: .01em;
   text-align: center; line-height: 1.35;
@@ -141,9 +167,9 @@ img    { max-width: 100%; display: block; }
   margin-bottom: 6px;
 }
 .rc-section-label {
-  font-family: var(--digital);
-  font-size: 11px; font-weight: 700;
-  letter-spacing: .18em;
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 900;
+  letter-spacing: .14em;
   color: var(--ink);
   text-transform: uppercase;
 }
@@ -155,8 +181,8 @@ img    { max-width: 100%; display: block; }
 
 .rc-axes {
   display: flex; flex-direction: column;
-  gap: 6px;
-  padding: 0 4px 2px;
+  gap: 8px;
+  padding: 0 6px 2px;
 }
 .rc-axis-item {
   display: flex; flex-direction: column; gap: 2px;
@@ -166,7 +192,7 @@ img    { max-width: 100%; display: block; }
 }
 .rc-axis-name {
   font-family: var(--sans);
-  font-size: 11px; font-weight: 500;
+  font-size: 12px; font-weight: 700;
   color: var(--ink);
 }
 .rc-axis-pct {
@@ -182,16 +208,14 @@ img    { max-width: 100%; display: block; }
 .rc-axis-bar-fill {
   height: 100%; border-radius: 100px;
   background: var(--ink);
-  transition: width 1s .6s ease;
-}
-.rc-axis-bottom-row {
-  display: flex; justify-content: space-between;
 }
 .rc-axis-label-lo,
 .rc-axis-label-hi {
-  font-family: var(--digital);
-  font-size: 8px; color: rgba(100,90,75,.55);
-  letter-spacing: .06em;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  color: rgba(140,130,115,.5);
+  letter-spacing: 0;
 }
 
 .rc-explanation {
@@ -203,13 +227,13 @@ img    { max-width: 100%; display: block; }
 
 .rc-wine-item {
   display: flex; align-items: flex-start;
-  gap: 16px; padding: 8px 0 10px;
+  gap: 10px; padding: 8px 0 10px;
 }
 .rc-wine-item + .rc-wine-item {
   border-top: 1px dashed rgba(140,130,115,.35);
 }
 .rc-wine-img-wrap {
-  width: 48px; height: 72px; flex-shrink: 0;
+  width: 56px; height: 84px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 .rc-wine-img {
@@ -220,11 +244,11 @@ img    { max-width: 100%; display: block; }
 }
 .rc-wine-name {
   font-family: var(--sans);
-  font-size: 14px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   color: var(--ink); line-height: 1.3;
 }
 .rc-wine-origin {
-  font-family: var(--digital);
+  font-family: var(--sans);
   font-size: 10px; color: var(--ink2);
   letter-spacing: .06em;
 }
@@ -362,6 +386,15 @@ img    { max-width: 100%; display: block; }
 /* ══════════════════════════════════════════
    QUIZ SCREEN
 ══════════════════════════════════════════ */
+#screen-age {
+  padding: max(env(safe-area-inset-top,0px), 16px) 20px
+           max(env(safe-area-inset-bottom,0px), 24px);
+  background-color: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
 #screen-quiz {
   position: relative;
   min-height: 100dvh;
@@ -461,25 +494,23 @@ img    { max-width: 100%; display: block; }
   width: 100%;
   position: relative; z-index: 1;
   display: flex; justify-content: flex-start;
-  padding: 4px 0 3px;
+  padding: 7px 0 5px;
 }
 #btn-back {
   background: rgba(255,255,255,.55);
-  border: 1.5px solid var(--border);  /* 기존 none → 테두리 추가 */
+  border: 1.5px solid var(--border);
   border-radius: 100px;
   font-family: var(--sans);
-  font-size: 10px;        /* 기존 11px */
-  color: var(--ink2);
-  padding: 3px 10px;      /* 기존 5px 14px */
+  font-size: 10px; color: var(--ink2);
+  padding: 2px 8px;
   display: flex; align-items: center; gap: 4px;
   transition: background .2s, color .2s;
-  min-width: 36px;        /* 기존 44px */
-  min-height: 28px;       /* 기존 36px */
+  min-width: 44px; min-height: 36px;
   backdrop-filter: blur(4px);
 }
 #btn-back::before {
   content: '←';
-  font-size: 13px; font-weight: 500;
+  font-size: 10px; font-weight: 600;
   color: var(--ink);
 }
 #btn-back:hover {
@@ -491,6 +522,7 @@ img    { max-width: 100%; display: block; }
   width: 100%;
   position: relative; z-index: 1;
   aspect-ratio: 876 / 820;
+  min-height: 260px;
   background: transparent;
   overflow: visible;
   will-change: opacity, transform;
@@ -579,7 +611,6 @@ img    { max-width: 100%; display: block; }
   margin-right: 2px;
 }
 
-/* 일러스트 영역 */
 .illust-area {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -608,7 +639,7 @@ img    { max-width: 100%; display: block; }
 #illust-slot-b { opacity: 0; }
 
 
-/* ── 선택지 (z-index: 1) ── */
+/* ── 선택지 ── */
 .options-header {
   width: 100%; position: relative; z-index: 1;
   font-family: var(--sans); font-size: 11px; font-weight: 600;
@@ -715,3 +746,339 @@ img    { max-width: 100%; display: block; }
 
 .step-dot.active { background: var(--ch-current); }
 .step-dot.done   { background: color-mix(in srgb, var(--ch-current) 60%, transparent); }
+
+
+/* ══════════════════════════════════════════
+   결과 코드 대형 타이포
+══════════════════════════════════════════ */
+.rc-code {
+  font-family: 'Black Han Sans', var(--display), serif;
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: 6px;
+  text-align: center;
+  line-height: 1;
+  display: block;
+}
+
+/* ══════════════════════════════════════════
+   TASTE PROFILE — 중앙 양방향 게이지
+══════════════════════════════════════════ */
+.rc-axis-bar-track {
+  position: relative !important;
+}
+.rc-axis-bar-center {
+  position: absolute;
+  left: 50%; top: 0;
+  width: 2px; height: 100%;
+  background: #ECECE7;
+  z-index: 2;
+  transform: translateX(-50%);
+}
+.rc-axis-bar-lo {
+  position: absolute;
+  right: 50%; top: 0;
+  height: 100%;
+  border-radius: 100px 0 0 100px;
+}
+.rc-axis-bar-hi {
+  position: absolute;
+  left: 50%; top: 0;
+  height: 100%;
+  border-radius: 0 100px 100px 0;
+}
+
+/* 우세한 쪽 레이블 강조 */
+.rc-axis-label-lo.dominant,
+.rc-axis-label-hi.dominant {
+  font-weight: 700 !important;
+  color: var(--axis-color, var(--ink)) !important;
+  font-size: 9px !important;
+}
+
+/* ══════════════════════════════════════════
+   WINE DETAIL POPUP
+══════════════════════════════════════════ */
+.wine-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.wine-popup-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 24px 48px;
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUpPopup .28s ease-out;
+}
+@keyframes slideUpPopup {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.wine-popup-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border: none;
+  background: rgba(140,130,115,.2);
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.wine-popup-img-wrap {
+  width: 80px; height: 120px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.wine-popup-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+.wine-popup-body {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.wine-popup-name {
+  font-family: var(--sans);
+  font-size: 17px; font-weight: 700;
+  color: var(--ink); line-height: 1.35;
+  text-align: center;
+}
+.wine-popup-origin {
+  font-family: var(--digital);
+  font-size: 11px; color: var(--ink2);
+  text-align: center; letter-spacing: .06em;
+  margin-bottom: 4px;
+}
+.wine-popup-grape {
+  font-family: var(--digital);
+  font-size: 10px; color: var(--ink2);
+  text-align: center; letter-spacing: .04em;
+  background: rgba(140,130,115,.12);
+  border-radius: 100px;
+  padding: 3px 12px;
+  align-self: center;
+  margin-bottom: 12px;
+}
+.wine-popup-section-label {
+  font-family: var(--digital);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--ink);
+  text-transform: uppercase;
+  border-bottom: 1px dashed rgba(140,130,115,.4);
+  padding-bottom: 6px;
+  margin-top: 10px; margin-bottom: 8px;
+}
+.wine-popup-tasting,
+.wine-popup-pairing {
+  font-family: var(--sans);
+  font-size: 13px; color: #3a3228;
+  line-height: 1.75;
+}
+.wine-popup-price {
+  font-family: var(--digital);
+  font-size: 12px; font-weight: 700;
+  color: var(--red);
+  text-align: right;
+  margin-top: 12px;
+  letter-spacing: .04em;
+}
+
+
+/* ══════════════════════════════════════════
+   언어 토글
+══════════════════════════════════════════ */
+.lang-toggle {
+  position: absolute;
+  top: max(env(safe-area-inset-top, 0px), 16px);
+  right: 18px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(6px);
+  border-radius: 100px;
+  padding: 5px 10px;
+}
+.lang-btn {
+  font-family: var(--digital);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: rgba(26,58,42,.45);
+  background: transparent;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  transition: color .2s;
+}
+.lang-btn.active {
+  color: var(--ink);
+}
+.lang-divider {
+  font-size: 10px;
+  color: rgba(26,58,42,.3);
+}
+
+/* ══════════════════════════════════════════
+   공유 팝업
+══════════════════════════════════════════ */
+.share-popup-card {
+  padding-bottom: 40px !important;
+}
+.share-popup-title {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.share-popup-desc {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink2);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.share-options {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+.share-option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.share-option-btn span {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink);
+}
+.share-option-icon {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .15s;
+}
+.share-option-btn:active .share-option-icon {
+  transform: scale(.93);
+}
+.kakao-icon {
+  background: #FEE500;
+}
+.ig-icon {
+  background: linear-gradient(135deg,
+    #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+.link-icon {
+  background: var(--ink);
+}
+
+/* ══════════════════════════════════════════
+   AGE SELECTION 화면
+══════════════════════════════════════════ */
+.btn-back-shared {
+  background: rgba(255,255,255,.55);
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  font-family: var(--sans);
+  font-size: 10px; color: var(--ink2);
+  padding: 2px 8px;
+  display: flex; align-items: center; gap: 4px;
+  transition: background .2s, color .2s;
+  min-width: 44px; min-height: 36px;
+  backdrop-filter: blur(4px);
+}
+.btn-back-shared::before {
+  content: '←';
+  font-size: 10px; font-weight: 600;
+  color: var(--ink);
+}
+.btn-back-shared:hover {
+  background: rgba(255,255,255,.80);
+  color: var(--ink);
+}
+
+#age-options-wrap {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ══════════════════════════════════════════
+   TASTE PROFILE — 새 게이지 레이아웃
+══════════════════════════════════════════ */
+.rc-axis-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.rc-axis-left-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+.rc-axis-right-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+.rc-axis-pct-lo,
+.rc-axis-pct-hi {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgba(140,130,115,.45);
+}
+.rc-axis-pct-lo.dominant,
+.rc-axis-pct-hi.dominant {
+  color: var(--axis-color, var(--ink));
+}
+
+.rc-axis-label-lo,
+.rc-axis-label-hi {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  color: rgba(140,130,115,.5);
+  line-height: 1.3;
+}
+.rc-axis-label-lo.dominant,
+.rc-axis-label-hi.dominant {
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  color: var(--axis-color, var(--ink)) !important;
+}

@@ -1,45 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
-  
-  <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TS2C9QH4');</script>
-<!-- End Google Tag Manager -->
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f4f1eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>WBTI — Wine Base Taste Index</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" />
   <link rel="stylesheet" href="css/style.css?v=7" />
 </head>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T36HHG0F80"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-T36HHG0F80');
-</script>
-
 <body>
 
 <!-- ══════════════════════════════════════════
      SCREEN 1 : COVER
-     ──────────────────────────────────────────
-     레이어 구조:
-       [0] cover_bg.png  — 전체 배경 이미지
-       [1] btn_start.png — 시작 버튼 (중앙 하단, 150px)
 ══════════════════════════════════════════ -->
 <section id="screen-cover" class="screen active">
+
+  <div class="lang-toggle" id="lang-toggle">
+    <button id="btn-lang-ko" class="lang-btn active" onclick="setLang('ko')">KR</button>
+    <span class="lang-divider">/</span>
+    <button id="btn-lang-en" class="lang-btn" onclick="setLang('en')">ENG</button>
+  </div>
 
   <img
     class="cover-bg"
@@ -48,10 +31,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     onerror="this.style.background='#f4f1eb'"
   />
 
-  <!--
-    버튼 위치: top 68% 기준 (커버 이미지의 16문항·3분소요 텍스트 아래)
-    top 값을 조정하면 버튼 위치가 올라가거나 내려갑니다.
-  -->
   <div class="cover-btn-wrap">
     <button class="btn-start" onclick="startQuiz()" aria-label="테스트 시작">
       <img
@@ -69,19 +48,62 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
 <!-- ══════════════════════════════════════════
+     SCREEN 1.5 : AGE SELECTION
+══════════════════════════════════════════ -->
+<section id="screen-age" class="screen">
+
+  <img class="quiz-bg-img" src="images/quiz_bg.png" alt="" aria-hidden="true"
+    onerror="this.remove()" />
+  <div class="quiz-pattern" aria-hidden="true"></div>
+
+  <div class="quiz-header">
+    <div class="quiz-logo-wrap">
+      <img src="images/ui/logo.png" alt="WBTI" class="quiz-logo-img"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+      <div class="quiz-logo" style="display:none;">WBTI</div>
+    </div>
+  </div>
+
+  <div class="btn-back-wrap">
+    <button id="btn-back-age" class="btn-back-shared"
+            onclick="showScreen('screen-cover')" aria-label="커버로">
+      <span id="age-back-label">이전</span>
+    </button>
+  </div>
+
+  <div class="options-header" id="age-question-text">나이대가 어떻게 되시나요?</div>
+
+  <div id="age-options-wrap" role="group" aria-label="나이대 선택">
+    <button class="option-btn age-btn" onclick="selectAge('20대')">
+      <div class="option-letter">1</div>
+      <div class="option-text" id="age-label-1">20대</div>
+    </button>
+    <button class="option-btn age-btn" onclick="selectAge('30대')">
+      <div class="option-letter">2</div>
+      <div class="option-text" id="age-label-2">30대</div>
+    </button>
+    <button class="option-btn age-btn" onclick="selectAge('40대')">
+      <div class="option-letter">3</div>
+      <div class="option-text" id="age-label-3">40대</div>
+    </button>
+    <button class="option-btn age-btn" onclick="selectAge('50대')">
+      <div class="option-letter">4</div>
+      <div class="option-text" id="age-label-4">50대</div>
+    </button>
+    <button class="option-btn age-btn" onclick="selectAge('60세 이상')">
+      <div class="option-letter">5</div>
+      <div class="option-text" id="age-label-5">60세 이상</div>
+    </button>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════
      SCREEN 2 : QUIZ
-     ──────────────────────────────────────────
-     레이어 구조:
-       [0] quiz_bg.png           — 전체 배경 (없으면 CSS 크림+원형패턴 fallback)
-       [1] WBTI 로고 + 챕터 + 진행바
-       [2] 이전 버튼 (왼쪽, 라운드)
-       [3] clipboard_card.png    — 클립보드 카드 배경 (876×820)
-           └ 카드 위: 질문번호 + 질문 텍스트 + 일러스트 (슬라이드 애니메이션)
-       [4] 선택지 A / B 버튼
 ══════════════════════════════════════════ -->
 <section id="screen-quiz" class="screen">
 
-  <!-- 퀴즈 전체 배경 이미지 (없으면 CSS fallback 자동 표시) -->
   <img
     class="quiz-bg-img"
     src="images/quiz_bg.png"
@@ -90,17 +112,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     onload="this.closest('#screen-quiz').classList.add('has-bg')"
     onerror="this.remove()"
   />
-  <!-- CSS 원형 패턴 fallback (quiz_bg.png 없을 때 표시) -->
   <div class="quiz-pattern" aria-hidden="true"></div>
 
-  <!-- 헤더: WBTI 로고 + 챕터명 + 진행바 + 카운터 -->
   <div class="quiz-header">
-    <!--
-      ★ 3번: 로고 이미지 파일
-      파일 위치: images/ui/logo.png
-      (images/ui/ 폴더에 logo.png 를 넣으면 자동 적용)
-      이미지 없을 때 텍스트 fallback 자동 표시
-    -->
     <div class="quiz-logo-wrap">
       <img
         src="images/ui/logo.png"
@@ -120,27 +134,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     </div>
   </div>
 
-  <!--
-    이전 버튼:
-    - Q1(idx=0)에서 누르면 커버 화면으로 이동
-    - Q2 이후에서 누르면 이전 질문으로 이동
-    - 챕터 색상(--ch-current)에 연동된 화살표
-  -->
   <div class="btn-back-wrap">
     <button id="btn-back" onclick="goPrev()" aria-label="이전으로">
       이전
     </button>
   </div>
 
-  <!--
-    클립보드 카드:
-    - clipboard_card.png (876×820)가 배경 이미지
-    - background: transparent → 흰 박스 없음
-    - 카드 내부에 질문 콘텐츠가 절대 배치됨
-  -->
   <div class="clipboard-wrap" id="quiz-card">
 
-    <!-- 클립+종이 배경 이미지 -->
     <img
       class="clipboard-bg-img"
       src="images/ui/clipboard_card.png"
@@ -150,51 +151,24 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                document.getElementById('clipboard-css-fallback').style.display='block';"
     />
 
-    <!-- CSS fallback: clipboard_card.png 없을 때 흰 카드 + 딥그린 클립 -->
     <div id="clipboard-css-fallback" class="clipboard-css-fallback" style="display:none;">
       <div class="clip-fallback-css" aria-hidden="true"></div>
     </div>
 
-    <!--
-      슬라이드 애니메이션 대상:
-      질문번호(Q1~Q16) + 상황 설명 + 질문 텍스트 + 일러스트
-      클립보드 이미지는 고정, 이 영역만 좌우 슬라이드
-    -->
     <div class="card-content-wrap" id="card-content">
-
-      <!-- 상황 설명: 화이트 컨테이너 배경 -->
       <p class="q-situation" id="q-situation"></p>
-
-      <!--
-        질문 텍스트:
-        JS에서 innerHTML으로
-        <span class="q-number">Q1</span>질문내용
-        형태로 주입됨
-      -->
       <p class="q-text" id="q-text"></p>
-
-      <!--
-        일러스트 영역:
-        images/illustrations/q01_popcorn.png 등
-        432×432 기준, 딥그린 18% 테두리
-      -->
       <div class="illust-area">
-        <img id="q-illust" src="" alt="질문 일러스트" decoding="async" loading="lazy" />
+        <div id="illust-area-inner">
+          <img id="illust-slot-a" src="" alt="" />
+          <img id="illust-slot-b" src="" alt="" />
+        </div>
       </div>
+    </div>
 
-    </div><!-- /.card-content-wrap -->
+  </div>
 
-  </div><!-- /.clipboard-wrap -->
-
-  <!-- 선택지 구분 텍스트 -->
   <div class="options-header" aria-hidden="true">선택지를 골라주세요</div>
-
-  <!--
-    선택지 A / B 버튼:
-    JS의 renderOptions()가 동적으로 생성
-    선택 전: 흰 배경 + 딥그린 테두리
-    선택 후: 딥그린 채움 + 크림 텍스트
-  -->
   <div id="options-wrap" role="group" aria-label="선택지"></div>
 
 </section>
@@ -202,15 +176,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <!-- ══════════════════════════════════════════
      SCREEN 3 : LOADING
-     ──────────────────────────────────────────
-     와인잔 SVG 채우기 애니메이션 (1.8초)
-     완료 후 결과 계산 → SCREEN 4 전환
 ══════════════════════════════════════════ -->
 <section id="screen-loading" class="screen" aria-live="polite" aria-label="결과 분석 중">
 
   <div class="wine-glass-wrap">
 
-    <!-- 와인잔 SVG: 아래에서 위로 채워지는 애니메이션 -->
     <svg
       width="72" height="100" viewBox="0 0 72 100"
       fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -221,27 +191,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <path d="M10 14 Q10 68 36 68 Q62 68 62 14 Z"/>
         </clipPath>
       </defs>
-      <!-- 와인 채우기 rect (CSS 애니메이션으로 height 0→40) -->
       <rect
         id="wine-fill-rect"
         x="10" y="60" width="52" height="0"
         fill="#9b2226" opacity="0.75"
         clip-path="url(#glass-clip)"
       />
-      <!-- 잔 외형 -->
       <path
         d="M10 14 Q10 68 36 68 Q62 68 62 14 Z"
         stroke="#1a3a2a" stroke-width="1.8" fill="none"
       />
-      <!-- 잔 스템 -->
       <line x1="36" y1="68" x2="36" y2="90"
             stroke="#1a3a2a" stroke-width="1.8"/>
-      <!-- 잔 베이스 -->
       <line x1="18" y1="90" x2="54" y2="90"
             stroke="#1a3a2a" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
 
-    <!-- 2번: 로딩 로고 이미지 (images/ui/logo.png) -->
     <div class="loading-logo-wrap">
       <img
         src="images/ui/logo.png"
@@ -261,53 +226,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <!-- ══════════════════════════════════════════
      SCREEN 4 : RESULT
-     ──────────────────────────────────────────
-     레이어 구조:
-       .receipt { background-image: receipt_bg.png }
-         └ .receipt-inner (텍스트 콘텐츠)
-              ├ WBTI 로고
-              ├ 캐릭터 이미지 (images/characters/{CODE}_c.png)
-              ├ 캐릭터 이름 + 원산지
-              ├ TASTE PROFILE: 4축 게이지
-              ├ EXPLANATION: 결과 설명
-              ├ WINE RECOMMENDATION: 추천 와인 1종
-              │   └ 와인 이미지 (images/wines/{CODE}.png)
-              └ 바코드 + 날짜
 ══════════════════════════════════════════ -->
 <section id="screen-result" class="screen">
 
-  <!-- 상단 헤더: Your Result + 다시하기 버튼 -->
+  <!-- ✅ 수정 1: Your Result 레이블 제거, Retry 버튼만 우측에 -->
   <div class="result-header-bar">
     <button class="btn-retry" onclick="retryQuiz()">↺ Retry</button>
   </div>
 
-  <!--
-    영수증 카드:
-    receipt_bg.png → CSS background-image (100% 100%)
-    HTML <img> 태그 사용 안 함 → 배경·텍스트 분리 방지
-  -->
   <div class="receipt" id="receipt-card">
     <div class="receipt-inner">
 
-      <!-- WBTI 로고 (4번: 이미지로 대체) -->
       <div class="rc-logo-row">
-        <img
-          src="images/ui/logo.png"
-          alt="WBTI"
-          class="rc-logo-img"
-          onerror="this.style.display='none';
-                   this.nextElementSibling.style.display='inline-block';"
-        />
-        <span class="rc-logo" id="result-logo" style="display:none;">WBTI</span>
+        <!-- ✅ 수정 2: WBTI TEST 뱃지 추가 (fill 없음, 그린 스트로크) -->
+        <div class="rc-wbti-badge-wrap">
+          <span class="rc-wbti-badge">WBTI TEST</span>
+        </div>
+        <div class="rc-code" id="result-code-display">WBTI</div>
       </div>
 
-      <!-- 캐릭터 이미지 + 이름 + 원산지 -->
       <div class="rc-char-block">
         <div class="rc-char-img-wrap">
-          <!--
-            images/characters/{CODE}_c.png
-            없으면 이모지 fallback 자동 표시
-          -->
           <img
             id="result-char-img"
             src=""
@@ -317,12 +256,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                      var fb=document.getElementById('result-char-fallback');
                      if(fb){ fb.style.display='flex'; }"
           />
-          <!-- ★ 9번: 이미지 없을 때 이모지 fallback -->
           <div id="result-char-fallback"
                style="display:none;font-size:72px;line-height:1;
                       width:160px;height:160px;
-                      align-items:center;justify-content:center;
-                      justify-content:center;">
+                      align-items:center;justify-content:center;">
             🍷
           </div>
         </div>
@@ -330,32 +267,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <div class="rc-char-origin" id="result-char-origin">—</div>
       </div>
 
-      <!-- TASTE PROFILE: 4축 게이지 (JS가 동적 생성) -->
       <div class="rc-section">
         <div class="rc-section-label-row">
           <span class="rc-section-label">TASTE PROFILE</span>
         </div>
         <div class="rc-divider"></div>
-        <!--
-          JS renderResult()가 rc-axes 안에 아래 구조를 16번 반복 생성:
-          <div class="rc-axis-item">
-            <div class="rc-axis-top-row">
-              <span class="rc-axis-name">1. 당도</span>
-              <span class="rc-axis-pct">12%</span>
-            </div>
-            <div class="rc-axis-bar-track">
-              <div class="rc-axis-bar-fill" style="width:12%"></div>
-            </div>
-            <div class="rc-axis-bottom-row">
-              <span class="rc-axis-label-lo">스위트</span>
-              <span class="rc-axis-label-hi">드라이</span>
-            </div>
-          </div>
-        -->
         <div class="rc-axes" id="result-axes"></div>
       </div>
 
-      <!-- EXPLANATION: 결과 설명 텍스트 -->
       <div class="rc-section">
         <div class="rc-section-label-row">
           <span class="rc-section-label">EXPLANATION</span>
@@ -364,19 +283,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <p class="rc-explanation" id="result-feature">—</p>
       </div>
 
-      <!-- WINE RECOMMENDATION: 소믈리에 추천 와인 1종 -->
       <div class="rc-section rc-section-last">
         <div class="rc-section-label-row">
           <span class="rc-section-label">WINE RECOMMENDATION</span>
         </div>
         <div class="rc-divider"></div>
 
-        <div class="rc-wine-item" id="rc-wine-1">
+        <div class="rc-wine-item" id="rc-wine-1" onclick="openWinePopup()" style="cursor:pointer;" role="button" aria-label="와인 상세 보기">
           <div class="rc-wine-img-wrap">
-            <!--
-              images/wines/{CODE}.png
-              없으면 img 요소만 숨김 (레이아웃 유지)
-            -->
             <img
               class="rc-wine-img"
               id="result-wine-img-1"
@@ -392,21 +306,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           </div>
         </div>
 
-        <!--
-          2번째 와인 항목: JS에서 style.display='none'으로 숨김
-          (1종 추천 정책에 따라 렌더링 시 자동 비활성화)
-        -->
         <div class="rc-wine-item" id="rc-wine-2" style="display:none;"></div>
 
-      </div><!-- /.rc-section-last -->
+      </div>
 
-      <!-- 바코드 + 날짜 -->
       <div class="rc-footer">
         <div class="rc-barcode-wrap">
-          <!--
-            images/ui/barcode.png
-            없으면 텍스트 바코드 fallback 자동 표시
-          -->
           <img
             src="images/ui/barcode.png"
             alt=""
@@ -424,19 +329,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             | || ||| | || ||| | || || | | ||| | || || | | ||| | || || |
           </div>
         </div>
-        <!-- 날짜: JS에서 "2026.05.28 – WINE PAIRING" 형식으로 주입 -->
         <div class="rc-date-row" id="result-date">—</div>
       </div>
 
-    </div><!-- /.receipt-inner -->
-  </div><!-- /#receipt-card -->
+    </div>
+  </div>
 
-  <!--
-    액션 버튼:
-    갤러리 저장 — Android/PC: PNG 다운로드, iOS: 새탭에서 열기
-    인스타 공유 — Web Share API 지원 시 이미지 직접 공유,
-                  미지원 시 텍스트 클립보드 복사 fallback
-  -->
   <div class="result-actions">
     <button
       id="btn-save"
@@ -449,27 +347,95 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <button
       id="btn-share-insta"
       class="btn-action btn-share-insta"
-      onclick="shareInstagram()"
-      aria-label="인스타그램에 공유"
+      onclick="openSharePopup()"
+      aria-label="공유하기"
     >
-      <span class="btn-action-icon">📸</span>인스타 공유
+      <span class="btn-action-icon">📤</span><span id="btn-share-label">공유하기</span>
     </button>
   </div>
 
 </section>
 
 
-<!-- 토스트 메시지 (저장/공유 결과 알림) -->
+<!-- ══════════════════════════════════════════
+     SHARE POPUP
+══════════════════════════════════════════ -->
+<div id="share-popup" class="wine-popup-overlay" onclick="closeSharePopup()" style="display:none;">
+  <div class="wine-popup-card share-popup-card" onclick="event.stopPropagation()">
+
+    <button class="wine-popup-close" onclick="closeSharePopup()" aria-label="닫기">✕</button>
+
+    <div class="share-popup-title" id="share-popup-title">공유하기</div>
+    <div class="share-popup-desc"  id="share-popup-desc">나의 WBTI 결과를 공유해보세요</div>
+
+    <div class="share-options">
+
+      <button class="share-option-btn" onclick="shareKakao()" id="btn-share-kakao">
+        <div class="share-option-icon kakao-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.7 1.6 5.1 4 6.6L4.8 21l4.2-2.4c1 .2 2 .4 3 .4 5.523 0 10-3.477 10-7.8S17.523 3 12 3z" fill="#3A1D1D"/>
+          </svg>
+        </div>
+        <span id="share-kakao-label">카카오톡</span>
+      </button>
+
+      <button class="share-option-btn" onclick="shareToInstagram()" id="btn-share-ig">
+        <div class="share-option-icon ig-icon">
+          <span style="font-size:22px;">📷</span>
+        </div>
+        <span id="share-ig-label">인스타그램</span>
+      </button>
+
+      <button class="share-option-btn" onclick="copyLink()" id="btn-copy-link">
+        <div class="share-option-icon link-icon">
+          <span style="font-size:22px;">🔗</span>
+        </div>
+        <span id="share-link-label">링크 복사</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     WINE DETAIL POPUP
+══════════════════════════════════════════ -->
+<div id="wine-popup" class="wine-popup-overlay" onclick="closeWinePopup()" style="display:none;" aria-modal="true" role="dialog">
+  <div class="wine-popup-card" onclick="event.stopPropagation()">
+
+    <button class="wine-popup-close" onclick="closeWinePopup()" aria-label="닫기">✕</button>
+
+    <div class="wine-popup-img-wrap">
+      <img id="popup-wine-img" src="" alt="와인" class="wine-popup-img"
+        onerror="this.style.display='none';" />
+    </div>
+
+    <div class="wine-popup-body">
+      <div class="wine-popup-name"    id="popup-wine-name">—</div>
+      <div class="wine-popup-origin"  id="popup-wine-origin">—</div>
+      <div class="wine-popup-grape"   id="popup-wine-grape">—</div>
+
+      <div class="wine-popup-section-label">테이스팅 노트</div>
+      <div class="wine-popup-tasting" id="popup-wine-tasting">—</div>
+
+      <div class="wine-popup-section-label">추천 페어링</div>
+      <div class="wine-popup-pairing" id="popup-wine-pairing">—</div>
+
+      <div class="wine-popup-price"   id="popup-wine-price">—</div>
+    </div>
+
+  </div>
+</div>
+
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!--
-  스크립트 로드 순서:
-  1. data.js  — CHAPTERS, questions, results 데이터
-  2. app.js   — 퀴즈 로직, 렌더링, 저장/공유
-  3. html2canvas — 결과 이미지 생성 (갤러리 저장/인스타 공유용)
--->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"></script>
 <script src="js/data.js?v=5"></script>
 <script src="js/app.js?v=7"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
+</html>
