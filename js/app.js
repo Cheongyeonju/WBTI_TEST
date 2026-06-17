@@ -1,7 +1,7 @@
 // =============================================
 // WBTI — app.js  (v8)
 // =============================================
-
+GIT 
 // ─── 서비스 설정 ─────────────────────────────
 const WBTI_URL      = 'https://wbti-test-drab.vercel.app/';
 const KAKAO_JS_KEY  = '37fe103ef60f973f833a3a41505950ff'; // ← 카카오 JavaScript 키 입력
@@ -18,7 +18,7 @@ const CHAPTER_COLORS = ['#1a3a2a','#6b1f2a','#7a5c1e','#2a3a5a'];
 
 // ─── Supabase 초기화 ─────────────────────────
 // ★ 실제 값으로 교체하세요
-const SUPABASE_URL = 'https://trnqjqggehvbtykfveqz.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://trnqjqggehvbtykfveqz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRybnFqcWdnZWh2YnR5a2Z2ZXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzU0MjgsImV4cCI6MjA5NzIxMTQyOH0.dxw21RVYBcuNjB02EBQZIAo2wLhEHD0vF8yFwifbetk';
 const supabaseClient = (
   typeof supabase !== 'undefined' &&
