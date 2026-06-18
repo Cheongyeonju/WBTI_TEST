@@ -779,30 +779,21 @@ img    { max-width: 100%; display: block; }
 }
 
 /* ══════════════════════════════════════════
-   TASTE PROFILE — 중앙 양방향 게이지
+   TASTE PROFILE — 단일 방향 우세 게이지
+   ── [트랙 표현 방식 변경] 우세한 쪽이 막대 폭 중 자기 비율만큼
+      컬러로 채우고, 나머지(약한 쪽)는 트랙 배경(회색)으로 남김.
+      기존 중앙(50%) 기준 양방향 분할 구조(rc-axis-bar-lo/hi,
+      rc-axis-bar-center)는 더 이상 사용하지 않음.
 ══════════════════════════════════════════ */
 .rc-axis-bar-track {
   position: relative !important;
+  background: rgba(140,130,115,.22);
 }
-.rc-axis-bar-center {
+.rc-axis-bar-dominant {
   position: absolute;
-  left: 50%; top: 0;
-  width: 2px; height: 100%;
-  background: #ECECE7;
-  z-index: 2;
-  transform: translateX(-50%);
-}
-.rc-axis-bar-lo {
-  position: absolute;
-  right: 50%; top: 0;
+  top: 0;
   height: 100%;
-  border-radius: 100px 0 0 100px;
-}
-.rc-axis-bar-hi {
-  position: absolute;
-  left: 50%; top: 0;
-  height: 100%;
-  border-radius: 0 100px 100px 0;
+  border-radius: 100px;
 }
 
 /* 우세한 쪽 레이블 강조 */

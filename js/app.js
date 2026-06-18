@@ -454,6 +454,25 @@ function renderResult(code) {
       const loLblCls  = isLoDominant  ? 'rc-axis-label-lo dominant'   : 'rc-axis-label-lo';
       const hiLblCls  = !isLoDominant ? 'rc-axis-label-hi dominant'   : 'rc-axis-label-hi';
 
+      // ════════════════════════════════════════════════════════════════
+      // ✅ [트랙 표현 방식만 변경] 요청사항: "더 강한 쪽부터 %를 차지하는 방식,
+      //    더 강한 쪽을 컬러, 반대쪽은 회색으로 표기"
+      //
+      // 기존 로직 (변경 전, 참고용 주석):
+      //   <div class="rc-axis-bar-center"></div>
+      //   <div class="rc-axis-bar-lo" style="width:${loW/2}%; background:${ax.color};"></div>
+      //   <div class="rc-axis-bar-hi" style="width:${hiW/2}%; background:${ax.color};"></div>
+      //   → 트랙 중앙(50%)을 기준으로 lo/hi가 항상 절반씩 자리를 차지하는 구조였음.
+      //
+      // 변경 후: 우세한(dominant) 쪽이 자기 비율(dominantPct)만큼 트랙을 채우고
+      //   나머지는 회색(트랙 배경색)으로 남는 단일 방향 바.
+      //   dominant가 lo쪽이면 왼쪽에서부터, hi쪽이면 오른쪽에서부터 채움.
+      // ════════════════════════════════════════════════════════════════
+      const dominantPct = isLoDominant ? loPct : hiPct;
+      const fillStyle = isLoDominant
+        ? `left:0; width:${dominantPct}%; background:${ax.color};`
+        : `right:0; width:${dominantPct}%; background:${ax.color};`;
+
       return `
       <div class="rc-axis-item">
         <span class="rc-axis-name">${i+1}. ${ax.label}</span>
@@ -463,9 +482,7 @@ function renderResult(code) {
             <span class="${loLblCls}" style="--axis-color:${ax.color}">${ax.lo}</span>
           </div>
           <div class="rc-axis-bar-track">
-            <div class="rc-axis-bar-center"></div>
-            <div class="rc-axis-bar-lo" style="width:${loW/2}%; background:${ax.color};"></div>
-            <div class="rc-axis-bar-hi" style="width:${hiW/2}%; background:${ax.color};"></div>
+            <div class="rc-axis-bar-dominant" style="${fillStyle}"></div>
           </div>
           <div class="rc-axis-right-block">
             <span class="${hiPctCls}" style="--axis-color:${ax.color}">${hiPct}%</span>
