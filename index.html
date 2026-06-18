@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>WBTI — Wine Base Taste Index</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" />
-  <link rel="stylesheet" href="css/style.css?v=7" />
+  <link rel="stylesheet" href="css/style.css?v=8" />
 </head>
 <body>
 
@@ -25,8 +25,9 @@
   </div>
 
   <img
+    id="cover-bg-img"
     class="cover-bg"
-    src="images/cover_bg.png"
+    src="images/cover.kr_bg.png"
     alt="WBTI 커버 배경"
     onerror="this.style.background='#f4f1eb'"
   />
@@ -57,7 +58,7 @@
   <div class="quiz-pattern" aria-hidden="true"></div>
 
   <div class="quiz-header">
-    <div class="quiz-logo-wrap">
+    <div class="quiz-logo-wrap logo-clickable" onclick="showScreen('screen-cover')" role="button" aria-label="처음으로">
       <img src="images/ui/logo.png" alt="WBTI" class="quiz-logo-img"
         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
       <div class="quiz-logo" style="display:none;">WBTI</div>
@@ -99,6 +100,7 @@
 </section>
 
 
+
 <!-- ══════════════════════════════════════════
      SCREEN 2 : QUIZ
 ══════════════════════════════════════════ -->
@@ -115,7 +117,7 @@
   <div class="quiz-pattern" aria-hidden="true"></div>
 
   <div class="quiz-header">
-    <div class="quiz-logo-wrap">
+    <div class="quiz-logo-wrap logo-clickable" onclick="showScreen('screen-cover')" role="button" aria-label="처음으로">
       <img
         src="images/ui/logo.png"
         alt="WBTI"
@@ -156,19 +158,23 @@
     </div>
 
     <div class="card-content-wrap" id="card-content">
+
       <p class="q-situation" id="q-situation"></p>
       <p class="q-text" id="q-text"></p>
+
       <div class="illust-area">
         <div id="illust-area-inner">
           <img id="illust-slot-a" src="" alt="" />
           <img id="illust-slot-b" src="" alt="" />
         </div>
       </div>
-    </div>
 
-  </div>
+    </div><!-- /.card-content-wrap -->
+
+  </div><!-- /.clipboard-wrap -->
 
   <div class="options-header" aria-hidden="true">선택지를 골라주세요</div>
+
   <div id="options-wrap" role="group" aria-label="선택지"></div>
 
 </section>
@@ -217,7 +223,7 @@
       />
       <div class="loading-title" style="display:none;">WBTI</div>
     </div>
-    <div class="loading-sub">나의 와인을 찾는 중…</div>
+    <div class="loading-sub" id="loading-sub-text">나의 와인을 찾는 중…</div>
 
   </div>
 
@@ -229,7 +235,7 @@
 ══════════════════════════════════════════ -->
 <section id="screen-result" class="screen">
 
-  <!-- ✅ 수정 1: Your Result 레이블 제거, Retry 버튼만 우측에 -->
+  <!-- 상단 헤더: Retry 버튼만 (Your Result 제거됨) -->
   <div class="result-header-bar">
     <button class="btn-retry" onclick="retryQuiz()">↺ Retry</button>
   </div>
@@ -237,14 +243,16 @@
   <div class="receipt" id="receipt-card">
     <div class="receipt-inner">
 
+      <!-- 결과 코드 표시 -->
       <div class="rc-logo-row">
-        <!-- ✅ 수정 2: WBTI TEST 뱃지 추가 (fill 없음, 그린 스트로크) -->
+        <!-- ✅ WBTI TEST 뱃지 — fill 없음, 그린 스트로크만 -->
         <div class="rc-wbti-badge-wrap">
           <span class="rc-wbti-badge">WBTI TEST</span>
         </div>
         <div class="rc-code" id="result-code-display">WBTI</div>
       </div>
 
+      <!-- 캐릭터 이미지 + 이름 + 원산지 -->
       <div class="rc-char-block">
         <div class="rc-char-img-wrap">
           <img
@@ -267,6 +275,7 @@
         <div class="rc-char-origin" id="result-char-origin">—</div>
       </div>
 
+      <!-- TASTE PROFILE -->
       <div class="rc-section">
         <div class="rc-section-label-row">
           <span class="rc-section-label">TASTE PROFILE</span>
@@ -275,6 +284,7 @@
         <div class="rc-axes" id="result-axes"></div>
       </div>
 
+      <!-- EXPLANATION -->
       <div class="rc-section">
         <div class="rc-section-label-row">
           <span class="rc-section-label">EXPLANATION</span>
@@ -283,6 +293,7 @@
         <p class="rc-explanation" id="result-feature">—</p>
       </div>
 
+      <!-- WINE RECOMMENDATION -->
       <div class="rc-section rc-section-last">
         <div class="rc-section-label-row">
           <span class="rc-section-label">WINE RECOMMENDATION</span>
@@ -308,9 +319,11 @@
 
         <div class="rc-wine-item" id="rc-wine-2" style="display:none;"></div>
 
-      </div>
+      </div><!-- /.rc-section-last -->
 
+      <!-- 바코드 + 날짜 -->
       <div class="rc-footer">
+        <div class="rc-divider"></div>
         <div class="rc-barcode-wrap">
           <img
             src="images/ui/barcode.png"
@@ -332,8 +345,8 @@
         <div class="rc-date-row" id="result-date">—</div>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /.receipt-inner -->
+  </div><!-- /#receipt-card -->
 
   <div class="result-actions">
     <button
@@ -416,13 +429,14 @@
       <div class="wine-popup-origin"  id="popup-wine-origin">—</div>
       <div class="wine-popup-grape"   id="popup-wine-grape">—</div>
 
-      <div class="wine-popup-section-label">테이스팅 노트</div>
+      <div class="wine-popup-section-label" id="popup-tasting-label">테이스팅 노트</div>
       <div class="wine-popup-tasting" id="popup-wine-tasting">—</div>
 
-      <div class="wine-popup-section-label">추천 페어링</div>
+      <div class="wine-popup-section-label" id="popup-pairing-label">추천 페어링</div>
       <div class="wine-popup-pairing" id="popup-wine-pairing">—</div>
 
-      <div class="wine-popup-price"   id="popup-wine-price">—</div>
+      <!-- ✅ 가격 표시 → 비비노 검색 링크로 교체 (app.js의 buildVivinoSearchUrl이 href/text를 채움) -->
+      <a class="wine-popup-price" id="popup-wine-price" href="https://www.vivino.com/" target="_blank" rel="noopener noreferrer">비비노에서 보기 →</a>
     </div>
 
   </div>
@@ -434,7 +448,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"></script>
 <script src="js/data.js?v=5"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/app.js?v=10"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>

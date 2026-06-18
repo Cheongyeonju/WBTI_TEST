@@ -1,10 +1,10 @@
 // =============================================
-// WBTI — app.js  (v8)
+// WBTI — app.js  (v10)
 // =============================================
-GIT 
+
 // ─── 서비스 설정 ─────────────────────────────
 const WBTI_URL      = 'https://wbti-test-drab.vercel.app/';
-const KAKAO_JS_KEY  = '37fe103ef60f973f833a3a41505950ff'; // ← 카카오 JavaScript 키 입력
+const KAKAO_JS_KEY  = 'YOUR_KAKAO_JS_KEY'; // ← 카카오 JavaScript 키 입력
 
 // ─── 상태 변수 ───────────────────────────────
 let answers     = new Array(16).fill(null);
@@ -68,9 +68,15 @@ function setLang(lang) {
   document.getElementById('btn-lang-ko')?.classList.toggle('active', lang === 'ko');
   document.getElementById('btn-lang-en')?.classList.toggle('active', lang === 'en');
 
+  // 1. 커버 배경 이미지 — 언어별 분기 (텍스트가 이미지에 그려져 있음)
+  const coverBg = document.getElementById('cover-bg-img');
+  if (coverBg) {
+    coverBg.src = lang === 'ko' ? 'images/cover.kr_bg.png' : 'images/cover.eng_bg.png';
+  }
+
   // 4. '선택지를 골라주세요' 영문 처리
-  const optHeader = document.querySelector('.options-header');
-  if (optHeader && optHeader.id !== 'age-question-text') {
+  const optHeader = document.querySelector('#screen-quiz .options-header');
+  if (optHeader) {
     optHeader.textContent = lang === 'ko' ? '선택지를 골라주세요' : 'Choose your answer';
   }
 
@@ -79,6 +85,8 @@ function setLang(lang) {
   if (!activeScreen) return;
 
   switch(activeScreen.id) {
+    case 'screen-cover':
+      break;
     case 'screen-quiz':
       renderQuestion(currentQ, 'none');
       break;
@@ -88,13 +96,25 @@ function setLang(lang) {
     case 'screen-age':
       renderAgePage();
       break;
+    case 'screen-loading':
+      updateLoadingLang();
+      break;
+  }
+
+  // ✅ 로딩 텍스트는 화면 활성 여부와 무관하게 항상 갱신
+  // (언어를 바꾼 뒤 나중에 로딩 화면으로 진입해도 올바른 언어로 보이도록)
+  updateLoadingLang();
+
+  // ✅ 와인 팝업이 열려 있는 상태라면 언어 전환 시 즉시 재렌더링
+  // (영어 모드 전환 후에도 테이스팅 노트/페어링이 갱신되지 않는 문제 방지)
+  const winePopup = document.getElementById('wine-popup');
+  if (winePopup && winePopup.style.display === 'flex') {
+    openWinePopup();
   }
 
   // 3. 퀴즈 이전 버튼 텍스트
   const backBtn = document.getElementById('btn-back');
   if (backBtn) {
-    const txt = backBtn.querySelector('span') || backBtn;
-    // btn-back은 텍스트노드로 "이전" 포함
     backBtn.childNodes.forEach(n => {
       if (n.nodeType === 3 && n.textContent.trim()) {
         n.textContent = lang === 'ko' ? '이전' : 'Back';
@@ -107,7 +127,6 @@ function setLang(lang) {
   // 저장 버튼 텍스트
   const saveBtn = document.getElementById('btn-save');
   if (saveBtn) {
-    const icon = saveBtn.querySelector('.btn-action-icon');
     saveBtn.innerHTML = '';
     const sp = document.createElement('span');
     sp.className = 'btn-action-icon'; sp.textContent = '⬇';
@@ -133,18 +152,21 @@ function updateSharePopupLang() {
   if (linkL)  linkL.textContent  = ko ? '링크 복사' : 'Copy Link';
 }
 
+function updateLoadingLang() {
+  const ko = currentLang === 'ko';
+  const sub = document.getElementById('loading-sub-text');
+  if (sub) sub.textContent = ko ? '나의 와인을 찾는 중…' : 'Finding your wine…';
+}
+
 function renderAgePage() {
   const ko = currentLang === 'ko';
 
-  // 2. 질문 텍스트 영문 처리
   const qEl = document.getElementById('age-question-text');
   if (qEl) qEl.textContent = ko ? '나이대가 어떻게 되시나요?' : 'What is your age group?';
 
-  // 3. 이전 버튼 영문 처리
   const backLabel = document.getElementById('age-back-label');
   if (backLabel) backLabel.textContent = ko ? '이전' : 'Back';
 
-  // 선택지 레이블
   const labels = ko
     ? ['20대', '30대', '40대', '50대', '60세 이상']
     : ['20s', '30s', '40s', '50s', '60 or older'];
@@ -156,17 +178,14 @@ function renderAgePage() {
 
 // ─── 나이대 선택 ─────────────────────────────
 function selectAge(age) {
-  // 영문 모드일 때도 DB에는 한글로 저장
   const ageMap = {
     '20s':'20대', '30s':'30대', '40s':'40대',
     '50s':'50대', '60 or older':'60세 이상'
   };
   selectedAge = ageMap[age] || age;
-  // 선택 표시
   document.querySelectorAll('.age-btn').forEach(btn => {
     btn.classList.toggle('selected', btn.textContent.trim() === age);
   });
-  // 200ms 후 퀴즈 시작
   setTimeout(() => {
     answers  = new Array(16).fill(null);
     currentQ = 0;
@@ -179,6 +198,7 @@ function selectAge(age) {
 function startQuiz() {
   selectedAge = '';
   showScreen('screen-age');
+  renderAgePage();
 }
 function retryQuiz() { startQuiz(); }
 
@@ -278,6 +298,8 @@ function updateCardContent(q, idx) {
     txtEl.innerHTML = `<span class="q-number">Q${idx + 1}.</span> ${currentLang === 'en' ? q.text_en : q.text}`;
   }
 
+  // ✅ 폰트 동적 축소(compact) 로직 제거 — 모든 문항이 동일한 폰트 크기를 유지함
+
   const slotA = document.getElementById('illust-slot-a');
   const slotB = document.getElementById('illust-slot-b');
   if (!slotA || !slotB) return;
@@ -342,6 +364,7 @@ function goPrev() {
 // ─── 로딩 → 결과 ──────────────────────────────
 async function goToLoading() {
   showScreen('screen-loading');
+  updateLoadingLang();
   const rect = document.getElementById('wine-fill-rect');
   if (rect) {
     rect.style.animation = 'none';
@@ -352,7 +375,6 @@ async function goToLoading() {
     resultCode = calcResult();
     renderResult(resultCode);
     showScreen('screen-result');
-    // Supabase 저장 (비동기, UI 블로킹 없음)
     await saveToSupabase(resultCode, selectedAge);
   }, 2200);
 }
@@ -375,10 +397,8 @@ function calcResult() {
 function renderResult(code) {
   const r = results[code] || results['DLEW'];
 
-  // ── 코드 표시 (로고 대신) ──
   setEl('result-code-display', code);
 
-  // ── 캐릭터 ──
   const charImg = document.getElementById('result-char-img');
   const charFb  = document.getElementById('result-char-fallback');
   if (charImg) {
@@ -399,14 +419,7 @@ function renderResult(code) {
   setEl('result-char-name',   currentLang === 'en' ? r.name_en    : r.name);
   setEl('result-char-origin', toOriginCase(r.origin));
 
-  // ── TASTE PROFILE — 중앙 양방향 게이지 ──
-  // 4축 정의: key, 레이블, lo쪽(코드값), hi쪽(코드값), 챕터 컬러
   const _en = currentLang === 'en';
-  // axes 수치 실제 의미:
-  //   sweet   = S(스위트)  방향 강도 → rawCode:'S'
-  //   tannin  = T(강한)    방향 강도 → rawCode:'T'
-  //   acidity = F(높은산미) 방향 강도 → rawCode:'F'
-  //   body    = B(풀바디)  방향 강도 → rawCode:'B'
   const axDefs = [
     { key:'sweet',   rawCode:'S', label:_en?'Sweetness':'당도',  lo:_en?'Sweet':'스위트',    loCode:'S', hi:_en?'Dry':'드라이',          hiCode:'D', color:'#1a3a2a' },
     { key:'tannin',  rawCode:'T', label:_en?'Tannin':'타닌',     lo:_en?'Smooth':'부드러운', loCode:'L', hi:_en?'Strong':'강한',         hiCode:'T', color:'#6b1f2a' },
@@ -414,34 +427,28 @@ function renderResult(code) {
     { key:'body',    rawCode:'B', label:_en?'Body':'바디감',      lo:_en?'Light':'라이트',    loCode:'W', hi:_en?'Full Body':'풀바디',    hiCode:'B', color:'#2a3a5a' }
   ];
 
-  // 코드에서 각 축 우세 방향 파악
   const codeMap = {
-    sweet:   code[0],   // S or D
-    tannin:  code[1],   // T or L
-    acidity: code[2],   // F or E
-    body:    code[3]    // B or W
+    sweet:   code[0],
+    tannin:  code[1],
+    acidity: code[2],
+    body:    code[3]
   };
 
   const axesEl = document.getElementById('result-axes');
   if (axesEl) {
     axesEl.innerHTML = axDefs.map((ax, i) => {
-      // axes 수치(rawPct)는 rawCode 방향의 강도
-      // rawCode가 loCode이면: lo방향=rawPct, hi방향=100-rawPct
-      // rawCode가 hiCode이면: hi방향=rawPct, lo방향=100-rawPct
       const rawPct   = r.axes[ax.key];
       const dominant = codeMap[ax.key];
 
-      const isRawLo = (ax.rawCode === ax.loCode);  // rawPct가 lo방향인지
+      const isRawLo = (ax.rawCode === ax.loCode);
       const loW = isRawLo ? rawPct       : (100 - rawPct);
       const hiW = isRawLo ? (100-rawPct) : rawPct;
 
-      // dominant가 loCode면 lo쪽이 우세
       const isLoDominant = (dominant === ax.loCode);
 
       const loPct = loW;
       const hiPct = hiW;
 
-      // 볼드/컬러 클래스
       const loPctCls  = isLoDominant  ? 'rc-axis-pct-lo dominant'     : 'rc-axis-pct-lo';
       const hiPctCls  = !isLoDominant ? 'rc-axis-pct-hi dominant'     : 'rc-axis-pct-hi';
       const loLblCls  = isLoDominant  ? 'rc-axis-label-lo dominant'   : 'rc-axis-label-lo';
@@ -451,18 +458,15 @@ function renderResult(code) {
       <div class="rc-axis-item">
         <span class="rc-axis-name">${i+1}. ${ax.label}</span>
         <div class="rc-axis-bar-row">
-          <!-- 좌: lo 퍼센트 + 레이블 -->
           <div class="rc-axis-left-block">
             <span class="${loPctCls}" style="--axis-color:${ax.color}">${loPct}%</span>
             <span class="${loLblCls}" style="--axis-color:${ax.color}">${ax.lo}</span>
           </div>
-          <!-- 중앙: 게이지 바 -->
           <div class="rc-axis-bar-track">
             <div class="rc-axis-bar-center"></div>
             <div class="rc-axis-bar-lo" style="width:${loW/2}%; background:${ax.color};"></div>
             <div class="rc-axis-bar-hi" style="width:${hiW/2}%; background:${ax.color};"></div>
           </div>
-          <!-- 우: 레이블 + hi 퍼센트 -->
           <div class="rc-axis-right-block">
             <span class="${hiPctCls}" style="--axis-color:${ax.color}">${hiPct}%</span>
             <span class="${hiLblCls}" style="--axis-color:${ax.color}">${ax.hi}</span>
@@ -474,7 +478,6 @@ function renderResult(code) {
 
   setEl('result-feature', currentLang === 'en' ? r.feature_en : r.feature);
 
-  // ── 와인 추천 ──
   const w = r.wine || { name:'—', origin:'—', feature:'—' };
   const wineImg = document.getElementById('result-wine-img-1');
   if (wineImg) {
@@ -492,29 +495,52 @@ function renderResult(code) {
 
   const now = new Date();
   setEl('result-date',
-    currentLang === 'en'
-      ? `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE WORKS`
-      : `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE WORKS`);
+    `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} – WINE PAIRING`);
+}
+
+// ─── 비비노 검색 URL 생성 ─────────────────────
+// 와인명(영문 우선)을 기반으로 비비노 검색 결과 URL을 자동 생성합니다.
+// 와인마다 정확한 페이지를 직접 매핑하지 않고, 검색어 기반으로 연결되므로
+// 새 와인이 추가돼도 별도 작업 없이 즉시 동작합니다.
+function buildVivinoSearchUrl(wineNameEn, wineNameKo) {
+  const query = (wineNameEn || wineNameKo || '').trim();
+  if (!query) return 'https://www.vivino.com/';
+  return `https://www.vivino.com/search/wines?q=${encodeURIComponent(query)}`;
 }
 
 // ─── 와인 팝업 ────────────────────────────────
 function openWinePopup() {
   const r = results[resultCode] || results['DLEW'];
   const w = r.wine || {};
+  const isEn = currentLang === 'en';
 
-  // 팝업 이미지
   const popImg = document.getElementById('popup-wine-img');
   if (popImg) {
-    popImg.src = `images/wines/${resultCode}.png`;
+    popImg.style.display = 'block';
+    popImg.onload  = () => { popImg.style.display = 'block'; };
     popImg.onerror = () => { popImg.style.display = 'none'; };
+    popImg.src = `images/wines/${resultCode}.png`;
   }
 
-  setEl('popup-wine-name',    currentLang === 'en' ? (w.name_en || w.name || '—') : (w.name || '—'));
+  setEl('popup-wine-name',    isEn ? (w.name_en || w.name || '—') : (w.name || '—'));
   setEl('popup-wine-origin',  toOriginCase(w.origin  || '—'));
   setEl('popup-wine-grape',   w.grape   || '');
-  setEl('popup-wine-tasting', currentLang === 'en' ? (w.tasting_note_en || w.tasting_note || '—') : (w.tasting_note || '—'));
-  setEl('popup-wine-pairing', currentLang === 'en' ? (w.pairing_en || w.pairing || '—') : (w.pairing || '—'));
-  setEl('popup-wine-price',   w.price_range  ? `💰 ${w.price_range}` : '');
+  // ✅ 섹션 제목도 언어에 맞게 갱신 (이전까지 HTML에 한글로 고정되어 있던 부분)
+  setEl('popup-tasting-label', isEn ? 'Tasting Notes' : '테이스팅 노트');
+  setEl('popup-pairing-label', isEn ? 'Recommended Pairing' : '추천 페어링');
+  // ✅ 영어 모드일 때 tasting_note_en / pairing_en 우선 사용 (data.js에 모두 존재)
+  setEl('popup-wine-tasting', isEn ? (w.tasting_note_en || w.tasting_note || '—') : (w.tasting_note || '—'));
+  setEl('popup-wine-pairing', isEn ? (w.pairing_en || w.pairing || '—') : (w.pairing || '—'));
+
+  // ✅ 가격 표시 → 비비노 검색 링크로 교체
+  const priceLinkEl = document.getElementById('popup-wine-price');
+  if (priceLinkEl) {
+    const vivinoUrl = buildVivinoSearchUrl(w.name_en, w.name);
+    priceLinkEl.href = vivinoUrl;
+    priceLinkEl.target = '_blank';
+    priceLinkEl.rel = 'noopener noreferrer';
+    priceLinkEl.textContent = isEn ? 'View on Vivino →' : '비비노에서 보기 →';
+  }
 
   const popup = document.getElementById('wine-popup');
   if (popup) popup.style.display = 'flex';
@@ -591,7 +617,6 @@ ${WBTI_URL}
       .then(() => closeSharePopup())
       .catch(e => { if (e.name !== 'AbortError') console.error(e); });
   } else {
-    // 미지원 시 링크 복사 fallback
     navigator.clipboard.writeText(WBTI_URL).then(() => {
       showToast(ko ? '링크가 복사됐어요! 인스타에 붙여넣기 해주세요 📸' : 'Link copied! Paste it on Instagram 📸');
       closeSharePopup();
