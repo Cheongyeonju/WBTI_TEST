@@ -4,7 +4,7 @@
 
 // ─── 서비스 설정 ─────────────────────────────
 const WBTI_URL      = 'https://wbti-test-drab.vercel.app/';
-const KAKAO_JS_KEY  = 'YOUR_KAKAO_JS_KEY'; // ← 카카오 JavaScript 키 입력
+const KAKAO_JS_KEY  = '37fe103ef60f973f833a3a41505950ff'; // ← 카카오 JavaScript 키 입력
 
 // ─── 상태 변수 ───────────────────────────────
 let answers     = new Array(16).fill(null);
